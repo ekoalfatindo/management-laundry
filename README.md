@@ -17,6 +17,20 @@ Data demo dihasilkan oleh seeder; tidak ada data produksi yang disertakan.
 Panduan lengkap dalam format HTML (arsitektur, deploy VPS/shared hosting, dan fungsi menu):
 [`docs/DOKUMENTASI_APLIKASI.html`](docs/DOKUMENTASI_APLIKASI.html) — buka langsung di browser.
 
+## Dukungan & Donasi
+
+Aplikasi ini **gratis untuk digunakan (Free to Use)** dan dapat dimanfaatkan untuk kebutuhan operasional bisnis maupun pembelajaran.
+
+Jika aplikasi ini memberikan manfaat bagi Anda, dukungan melalui donasi sukarela akan sangat berarti untuk membantu pengembangan, pemeliharaan, serta penyempurnaan fitur aplikasi di masa mendatang.
+
+Donasi sepenuhnya bersifat sukarela dan tidak diwajibkan untuk menggunakan aplikasi ini.
+
+**Dukung pengembangan proyek ini melalui Saweria:**
+
+☕ **Saweria:** https://saweria.co/masykuro075
+
+Terima kasih atas dukungan dan apresiasi Anda. Setiap kontribusi sangat berarti bagi keberlangsungan pengembangan proyek ini.
+
 ## Fitur
 
 - **Autentikasi & pengalihan peran**: login untuk staf dan pelanggan dengan rate limit serta toggle tampilkan/sembunyikan kata sandi; admin/karyawan diarahkan ke dashboard dan pelanggan ke portal `/akun`.
