@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "strict": true,
+        "noEmit": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "allowJs": true,
+        "checkJs": false,
+        "isolatedModules": true,
+        "types": ["vite/client"]
+    },
+    "include": ["resources/js/**/*.ts", "resources/js/**/*.svelte", "resources/js/**/*.d.ts"],
+    "exclude": ["node_modules", "public/build"]
+}

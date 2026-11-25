@@ -1,0 +1,53 @@
+# Environment & Credentials
+.env
+.env.*
+!.env.example
+auth.json
+
+# Laravel
+/vendor
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/bootstrap/cache/*.php
+
+# Node.js & Svelte
+/node_modules
+/.svelte-check
+npm-debug.log*
+yarn-debug.log*
+
+# Logs
+*.log
+
+# IDE & Editors
+/.idea
+/.nova
+/.vscode
+/.zed
+/.cursor/
+/.codex
+/.phpactor.json
+_ide_helper.php
+
+# PHPUnit
+/.phpunit.cache
+.phpunit.result.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Laravel Homestead
+Homestead.json
+Homestead.yaml
+
+# Development files
+/public/fonts-manifest.dev.json

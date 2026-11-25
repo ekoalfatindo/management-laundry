@@ -1,0 +1,2055 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dokumentasi Laundry Management System — Arsitektur, Deploy, Menu</title>
+<style>
+    :root {
+        --bg: #fbf5ed;
+        --surface: #fffdfa;
+        --ink: #2b1d12;
+        --muted: #6b5845;
+        --line: #ecd9c5;
+        --brand: #c2410c;
+        --brand-dark: #9a3412;
+        --brand-soft: #fff1e4;
+        --accent: #b45309;
+        --warn: #b45309;
+        --danger: #be123c;
+        --radius: 14px;
+        --shadow: 0 1px 2px rgba(67, 20, 7, .06), 0 10px 30px rgba(67, 20, 7, .06);
+        --code-bg: #24170f;
+        --code-ink: #ffe7d0;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+
+    body {
+        margin: 0;
+        background-color: var(--bg);
+        background-image:
+            radial-gradient(circle at 8% 0%, rgba(249, 115, 22, .10), transparent 34%),
+            radial-gradient(circle at 100% 100%, rgba(217, 119, 6, .12), transparent 40%),
+            linear-gradient(135deg, #fffaf4 0%, #fdf2e6 48%, #f7e8d7 100%);
+        background-attachment: fixed;
+        color: var(--ink);
+        font: 16px/1.7 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .hero {
+        background-image:
+            radial-gradient(circle at 82% 12%, rgba(251, 191, 36, .24), transparent 42%),
+            radial-gradient(circle at 12% 88%, rgba(249, 115, 22, .28), transparent 45%),
+            linear-gradient(155deg, #b45309 0%, #9a3412 42%, #7c2d12 70%, #431407 100%);
+        color: #fff;
+        padding: 56px 24px 44px;
+    }
+
+    .hero-inner { max-width: 1100px; margin: 0 auto; }
+
+    @media (min-width: 961px) {
+        .hero { padding-left: calc(300px + 24px); }
+    }
+
+    .kicker {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        background: rgba(255, 255, 255, .14);
+        border: 1px solid rgba(255, 255, 255, .26);
+        padding: 5px 11px;
+        border-radius: 999px;
+    }
+
+    .hero h1 {
+        margin: 18px 0 8px;
+        font-size: clamp(30px, 4.4vw, 46px);
+        line-height: 1.15;
+        letter-spacing: -.02em;
+    }
+
+    .hero .lead {
+        margin: 0;
+        max-width: 760px;
+        font-size: clamp(16px, 1.9vw, 19px);
+        color: #ffedd5;
+    }
+
+    .hero-meta {
+        margin-top: 14px;
+        font-size: 13px;
+        color: #fed7aa;
+    }
+
+    .hero-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 26px;
+    }
+
+    .hero-links a {
+        color: #fff;
+        background: rgba(255, 255, 255, .12);
+        border: 1px solid rgba(255, 255, 255, .24);
+        border-radius: 999px;
+        padding: 8px 15px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .hero-links a:hover { background: rgba(255, 255, 255, .22); text-decoration: none; }
+
+    .toc {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: 300px;
+        overflow-y: auto;
+        background: var(--surface);
+        border-right: 1px solid var(--line);
+        padding: 22px 16px 40px;
+        z-index: 40;
+    }
+
+    .toc-title {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: #a1856a;
+        padding: 0 10px 10px;
+    }
+
+    .toc ul { list-style: none; margin: 0; padding: 0; }
+    .toc li { margin: 1px 0; }
+
+    .toc a {
+        display: block;
+        padding: 6px 10px;
+        border-radius: 8px;
+        color: #5f4630;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .toc a:hover { background: #f9eee1; text-decoration: none; }
+    .toc a.active { background: var(--brand-soft); color: var(--brand-dark); font-weight: 700; }
+    .toc .sub a { padding-left: 24px; font-size: 13px; color: #8a6a4f; }
+    .toc .sub a.active { color: var(--brand); }
+
+    #tocToggle {
+        display: none;
+        position: fixed;
+        top: 14px;
+        right: 14px;
+        z-index: 60;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 9px 14px;
+        border-radius: 999px;
+        box-shadow: var(--shadow);
+        cursor: pointer;
+    }
+
+    main {
+        margin-left: 300px;
+        padding: 36px clamp(16px, 4vw, 56px) 90px;
+    }
+
+    .content { max-width: 1040px; margin: 0 auto; }
+
+    section { scroll-margin-top: 20px; margin-bottom: 58px; }
+
+    h2 {
+        font-size: clamp(23px, 2.6vw, 28px);
+        line-height: 1.25;
+        margin: 0 0 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--line);
+        letter-spacing: -.01em;
+    }
+
+    h3 { font-size: 19px; margin: 30px 0 8px; }
+    h4 { font-size: 16px; margin: 20px 0 6px; }
+
+    p { margin: 10px 0; }
+    ul, ol { margin: 8px 0 10px 24px; padding: 0; }
+    li { margin: 5px 0; }
+
+    .lead { font-size: 17px; color: #4a3727; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .nowrap { white-space: nowrap; }
+
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--shadow);
+        margin: 14px 0;
+    }
+
+    .card h3:first-child, .card h4:first-child { margin-top: 0; }
+
+    .grid { display: grid; gap: 14px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .kpi {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px 18px;
+        box-shadow: var(--shadow);
+    }
+
+    .kpi b { display: block; font-size: 26px; line-height: 1.2; color: var(--brand-dark); }
+    .kpi span { font-size: 13px; color: var(--muted); }
+
+    .pill {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 2px 9px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #fdf6ee;
+        color: #6b5845;
+        white-space: nowrap;
+    }
+
+    .pill.admin { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+    .pill.karyawan { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+    .pill.pelanggan { background: #eef2ff; border-color: #c7d2fe; color: #4338ca; }
+    .pill.yes { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+    .pill.no { background: #fdf6ee; border-color: var(--line); color: #a1856a; }
+
+    .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface);
+        margin: 12px 0;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th {
+        background: #fdf5ec;
+        color: #8a6a4f;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: 0; }
+    td code, th code { white-space: nowrap; }
+
+    code {
+        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: .9em;
+        background: #f6eadc;
+        color: #5b3418;
+        padding: 2px 6px;
+        border-radius: 6px;
+    }
+
+    .code { position: relative; margin: 12px 0; }
+
+    .code pre {
+        margin: 0;
+        background: var(--code-bg);
+        color: var(--code-ink);
+        padding: 16px 18px;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 13px;
+        line-height: 1.65;
+        tab-size: 4;
+    }
+
+    .code pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+    .code button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        border: 1px solid #5a3a22;
+        background: #3a2517;
+        color: #f5d7bd;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 9px;
+        border-radius: 7px;
+        cursor: pointer;
+    }
+
+    .code button:hover { background: #5a3a22; color: #fff; }
+
+    .callout {
+        border-left: 4px solid;
+        border-radius: 10px;
+        padding: 13px 16px;
+        margin: 14px 0;
+        background: #fffdfa;
+        font-size: 14.5px;
+    }
+
+    .callout p:first-child { margin-top: 0; }
+    .callout p:last-child { margin-bottom: 0; }
+    .callout strong:first-child { display: block; margin-bottom: 2px; }
+    .callout.info { border-color: #0284c7; background: #f0f9ff; }
+    .callout.warn { border-color: #d97706; background: #fffbeb; }
+    .callout.danger { border-color: #e11d48; background: #fff1f2; }
+    .callout.ok { border-color: #059669; background: #ecfdf5; }
+
+    .flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 8px;
+        margin: 16px 0;
+    }
+
+    .flow .node {
+        flex: 1 1 160px;
+        min-width: 150px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+        box-shadow: var(--shadow);
+    }
+
+    .flow .node strong { display: block; font-size: 14px; }
+    .flow .node small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .flow .node .tag {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--brand);
+        margin-bottom: 4px;
+    }
+
+    .flow .arrow {
+        align-self: center;
+        color: #a1856a;
+        font-size: 18px;
+        font-weight: 700;
+        padding: 0 2px;
+    }
+
+    .menu-card { border-top: 4px solid var(--brand); }
+    .menu-card header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin-bottom: 6px; }
+    .menu-card header h3 { margin: 0; }
+    .menu-card .url { font-family: ui-monospace, Consolas, monospace; font-size: 13px; color: var(--muted); }
+
+    .checklist { list-style: none; margin: 8px 0; padding: 0; }
+    .checklist li { padding-left: 28px; position: relative; margin: 7px 0; }
+    .checklist li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 4px;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #b9a08a;
+        border-radius: 4px;
+        background: #fffdfa;
+    }
+
+    .steps { counter-reset: step; list-style: none; margin: 12px 0; padding: 0; }
+    .steps > li {
+        counter-increment: step;
+        position: relative;
+        padding: 0 0 4px 48px;
+        margin: 0 0 22px;
+    }
+    .steps > li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--brand);
+        color: #fff;
+        font-weight: 800;
+        font-size: 14px;
+    }
+    .steps > li > strong:first-child { display: block; margin-bottom: 4px; font-size: 16px; }
+
+    .footer {
+        border-top: 1px solid var(--line);
+        margin-top: 60px;
+        padding-top: 20px;
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .anchor-note { font-size: 12px; color: #a1856a; margin-left: 6px; font-weight: 500; }
+
+    @media (max-width: 1100px) {
+        .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 960px) {
+        .toc { transform: translateX(-100%); transition: transform .2s ease; box-shadow: var(--shadow); }
+        .toc.open { transform: none; }
+        main { margin-left: 0; }
+        #tocToggle { display: inline-flex; }
+        .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .flow .arrow { display: none; }
+    }
+
+    @media (max-width: 720px) {
+        .grid-2, .grid-3, .grid-4 { grid-template-columns: minmax(0, 1fr); }
+        .hero { padding-top: 64px; }
+        .hero-links a { font-size: 13px; }
+        .steps > li { padding-left: 42px; }
+        .steps > li::before { width: 28px; height: 28px; font-size: 13px; }
+    }
+
+    @media print {
+        body { background: #fff; font-size: 11pt; }
+        .toc, #tocToggle, .hero-links, .code button { display: none !important; }
+        main { margin: 0; padding: 0; }
+        .hero { background: #fff !important; color: #000; padding: 0 0 16px; border-bottom: 2px solid #000; }
+        .hero .lead, .hero-meta, .kicker { color: #333; background: none; border: 0; padding: 0; }
+        .card, .kpi, .table-wrap { box-shadow: none; break-inside: avoid; }
+        .code pre { white-space: pre-wrap; background: #f1f5f9; color: #000; border: 1px solid #cbd5e1; }
+        section { margin-bottom: 28px; }
+        a { color: #000; text-decoration: underline; }
+    }
+</style>
+</head>
+<body>
+
+<header class="hero" id="atas">
+    <div class="hero-inner">
+        <span class="kicker">Dokumentasi Teknis</span>
+        <h1>Laundry Management System</h1>
+        <p class="lead">
+            Panduan lengkap arsitektur aplikasi, cara deploy ke VPS atau shared hosting, dan fungsi
+            setiap menu. Dokumen ini disusun berdasarkan kode proyek.
+        </p>
+        <p class="hero-meta">
+            Laravel 13 · Inertia.js · Svelte 5 · Tailwind CSS 4 · MySQL 8 — diperbarui 24 November 2026
+        </p>
+        <div class="hero-links">
+            <a href="#arsitektur">Arsitektur</a>
+            <a href="#menu">Fungsi Menu</a>
+            <a href="#deploy">Deploy VPS</a>
+            <a href="#shared-hosting">Shared Hosting</a>
+            <a href="#troubleshooting">Troubleshooting</a>
+        </div>
+    </div>
+</header>
+
+<button id="tocToggle" type="button" aria-controls="toc" aria-expanded="false">Daftar isi</button>
+
+<aside class="toc" id="toc" aria-label="Daftar isi">
+    <div class="toc-title">Daftar Isi</div>
+    <nav>
+        <ul>
+            <li><a href="#ringkasan">Ringkasan Aplikasi</a></li>
+            <li><a href="#arsitektur">1. Arsitektur Program</a></li>
+            <li class="sub"><a href="#stack">Stack &amp; diagram</a></li>
+            <li class="sub"><a href="#struktur">Struktur folder</a></li>
+            <li class="sub"><a href="#alur">Alur request</a></li>
+            <li class="sub"><a href="#route">Peta route</a></li>
+            <li class="sub"><a href="#otorisasi">Peran &amp; permission</a></li>
+            <li class="sub"><a href="#bisnis">Aturan bisnis</a></li>
+            <li class="sub"><a href="#database">Database</a></li>
+            <li class="sub"><a href="#keamanan">Keamanan</a></li>
+            <li><a href="#menu">2. Fungsi Menu</a></li>
+            <li class="sub"><a href="#navigasi">Peta navigasi</a></li>
+            <li class="sub"><a href="#menu-dashboard">Dashboard</a></li>
+            <li class="sub"><a href="#menu-nota">Nota Transaksi</a></li>
+            <li class="sub"><a href="#menu-buat">Buat Nota</a></li>
+            <li class="sub"><a href="#menu-detail">Detail &amp; cetak</a></li>
+            <li class="sub"><a href="#menu-edit">Edit &amp; hapus nota</a></li>
+            <li class="sub"><a href="#menu-master">Master data</a></li>
+            <li class="sub"><a href="#menu-orang">Pelanggan, karyawan, pengguna</a></li>
+            <li class="sub"><a href="#menu-setup">Setup identitas</a></li>
+            <li class="sub"><a href="#menu-portal">Portal pelanggan</a></li>
+            <li class="sub"><a href="#menu-global">Fitur global</a></li>
+            <li><a href="#deploy">3. Deploy</a></li>
+            <li class="sub"><a href="#kebutuhan">Kebutuhan server</a></li>
+            <li class="sub"><a href="#checklist">Checklist produksi</a></li>
+            <li class="sub"><a href="#vps">Deploy VPS</a></li>
+            <li class="sub"><a href="#shared-hosting">Shared hosting</a></li>
+            <li class="sub"><a href="#data-produksi">Data produksi</a></li>
+            <li class="sub"><a href="#update-backup">Update &amp; backup</a></li>
+            <li><a href="#troubleshooting">4. Troubleshooting</a></li>
+            <li><a href="#lampiran">5. Lampiran</a></li>
+            <li class="sub"><a href="#akun-demo">Akun demo &amp; login</a></li>
+        </ul>
+    </nav>
+</aside>
+
+<main>
+<div class="content">
+
+<section id="ringkasan">
+    <h2>Ringkasan Aplikasi</h2>
+    <p class="lead">
+        Aplikasi laundry untuk mencatat transaksi, mengelola pelanggan dan staf, mengatur katalog
+        layanan, menerbitkan invoice A4 dengan terbilang, mengelola identitas perusahaan, serta
+        memantau pendapatan. Pelanggan memiliki portal untuk melihat nota miliknya dan mengunduh PDF.
+    </p>
+
+    <div class="grid grid-4">
+        <div class="kpi"><b>9</b><span>menu staf di sidebar (termasuk Setup)</span></div>
+        <div class="kpi"><b>3</b><span>peran: admin, karyawan, pelanggan</span></div>
+        <div class="kpi"><b>12</b><span>permission Spatie</span></div>
+        <div class="kpi"><b>8</b><span>tabel domain utama</span></div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:14px">
+        <div class="card">
+            <h4>Yang bisa dilakukan</h4>
+            <ul>
+                <li>Login untuk staf dan pelanggan; staf masuk ke dashboard, pelanggan ke portal <code>/akun</code>.</li>
+                <li>Lupa kata sandi via email dengan token reset sekali pakai.</li>
+                <li>Dashboard KPI, grafik pendapatan 12 bulan, dan nota terbaru.</li>
+                <li>CRUD pengguna, karyawan, pelanggan, barang satuan, paket kiloan, jenis layanan.</li>
+                <li>Nota <strong>Paket Kiloan</strong> (berat × harga/kg) dan <strong>Barang Satuan</strong> (multi-baris + biaya layanan).</li>
+                <li>Diskon persen, perhitungan ulang di server, snapshot harga pada nota.</li>
+                <li>Invoice A4 profesional dengan logo/nama perusahaan, terbilang Indonesia, dan cetak bersih.</li>
+                <li>Portal pelanggan: ringkasan + daftar nota sendiri, detail invoice, dan unduh PDF A4.</li>
+                <li>Setup identitas perusahaan (nama + logo) yang dipakai di sidebar, login, dan invoice.</li>
+                <li>Pencarian, filter, pagination server-side, ekspor CSV.</li>
+                <li>Dark mode, layout responsif, halaman error 403/404/419/429/500/503.</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h4>Yang sengaja tidak ada</h4>
+            <p class="small muted">Tidak dibuat karena tidak ditemukan pada aplikasi legacy:</p>
+            <ul class="small">
+                <li>Pembayaran, status lunas, dan piutang.</li>
+                <li>Status pengerjaan laundry.</li>
+                <li>Pengeluaran operasional dan laporan laba.</li>
+                <li>Outlet/cabang, stok, multi-gudang.</li>
+                <li>Register publik, multi-tenant.</li>
+                <li>Toggle grid/list kosmetik dan endpoint grafik pie yang tidak dipakai.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="callout info">
+        <strong>Cara membaca dokumen ini</strong>
+        Bagian <a href="#arsitektur">Arsitektur</a> menjelaskan teknologi, struktur kode, route, dan
+        aturan bisnis. Bagian <a href="#menu">Fungsi Menu</a> menjelaskan setiap layar beserta hak
+        aksesnya. Bagian <a href="#deploy">Deploy</a> berisi langkah operasional untuk VPS dan shared
+        hosting, termasuk perbedaan alur karena shared hosting umumnya tanpa SSH.
+    </div>
+</section>
+
+<section id="arsitektur">
+    <h2>1. Arsitektur Program</h2>
+
+    <h3 id="stack">1.1 Stack dan diagram alur</h3>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Komponen</th><th>Teknologi</th><th>Keterangan</th></tr></thead>
+            <tbody>
+                <tr><td>PHP</td><td>8.3+ (diuji 8.4.27 NTS)</td><td>Minimum Laravel 13.</td></tr>
+                <tr><td>Backend</td><td>Laravel 13.17</td><td>Routing, validasi, service layer, policy, migrasi.</td></tr>
+                <tr><td>Jembatan UI</td><td>Inertia.js v3</td><td>Server mengirim props; Svelte merender halaman tanpa API terpisah.</td></tr>
+                <tr><td>Frontend</td><td>Svelte 5 (runes) + TypeScript</td><td>Tanpa Vue.js. State lokal memakai <code>$state</code>/<code>$derived</code>.</td></tr>
+                <tr><td>Styling</td><td>Tailwind CSS 4 + Vite 8</td><td>Build aset ke <code>public/build</code>.</td></tr>
+                <tr><td>Notifikasi</td><td>SweetAlert2 11</td><td>Dialog konfirmasi hapus dan toast sukses/gagal dengan tema oranye/rose (mode terang &amp; gelap).</td></tr>
+                <tr><td>Auth &amp; RBAC</td><td>Session auth + spatie/laravel-permission 8.5</td><td>3 role, 12 permission, middleware <code>permission:*</code> untuk staf dan <code>pelanggan</code> untuk portal; reset password memakai password broker Laravel.</td></tr>
+                <tr><td>PDF</td><td>dompdf 3.1</td><td>Invoice nota A4 dibuat di server dari <code>resources/views/pdf/nota.blade.php</code>.</td></tr>
+                <tr><td>Database</td><td>MySQL 8 (InnoDB, utf8mb4)</td><td>Uang disimpan sebagai integer rupiah; berat <code>decimal(8,2)</code>.</td></tr>
+                <tr><td>Storage</td><td>Laravel public disk</td><td>Logo perusahaan di <code>storage/app/public/logos</code> dengan symlink <code>public/storage</code>.</td></tr>
+                <tr><td>Testing</td><td>PHPUnit 12 + svelte-check</td><td>93 test, database test terpisah <code>laundry_svelte_test</code>.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flow" aria-label="Diagram alur aplikasi">
+        <div class="node"><span class="tag">Client</span><strong>Browser</strong><small>Svelte 5 pages di <code>resources/js/Pages</code></small></div>
+        <div class="arrow">→</div>
+        <div class="node"><span class="tag">Protocol</span><strong>Inertia.js</strong><small>Props JSON + navigasi halaman</small></div>
+        <div class="arrow">→</div>
+        <div class="node"><span class="tag">HTTP</span><strong>Route + Session</strong><small>Middleware <code>auth</code> dan <code>permission:*</code></small></div>
+        <div class="arrow">→</div>
+        <div class="node"><span class="tag">App</span><strong>Controller → Service</strong><small>FormRequest, Policy, Action, DTO</small></div>
+        <div class="arrow">→</div>
+        <div class="node"><span class="tag">Data</span><strong>Eloquent → MySQL</strong><small>Transaksi DB, snapshot harga</small></div>
+    </div>
+
+    <p>
+        Tidak ada REST API terpisah dan tidak ada state manager eksternal. Setiap kunjungan halaman
+        menghasilkan satu response Inertia berisi komponen Svelte dan props yang sudah diotorisasi
+        serta divalidasi di server.
+    </p>
+
+    <h3 id="struktur">1.2 Struktur folder</h3>
+    <div class="grid grid-2">
+        <div class="card">
+            <h4>Backend</h4>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>app/
+├── Actions/Nota/GenerateNomorNota.php
+├── DTOs/NotaData.php
+├── Enums/JenisNota.php, UserRole.php
+├── Exceptions/DomainException.php
+├── Http/
+│   ├── Controllers/
+│   │   ├── Auth/AuthenticatedSessionController.php
+│   │   ├── Auth/PasswordResetLinkController.php
+│   │   ├── Auth/NewPasswordController.php
+│   │   ├── DashboardController.php
+│   │   ├── UserController.php
+│   │   ├── KaryawanController.php
+│   │   ├── PelangganController.php
+│   │   ├── BarangController.php
+│   │   ├── KiloanController.php
+│   │   ├── JenisLayananController.php
+│   │   ├── NotaController.php
+│   │   ├── PengaturanController.php
+│   │   └── AkunController.php        portal pelanggan (index/show/pdf)
+│   ├── Middleware/
+│   │   ├── HandleInertiaRequests.php
+│   │   ├── EnsureStaff.php           pelanggan → /akun
+│   │   └── EnsurePelanggan.php       staf → dashboard
+│   ├── Requests/        validasi + authorize()
+│   └── Resources/       Nota, NotaBarang, User
+├── Models/              User, Barang, Kiloan,
+│                        JenisLayanan, Nota, NotaBarang,
+│                        Pengaturan
+├── Policies/            per resource
+├── Providers/AppServiceProvider.php
+├── Support/Terbilang.php  angka → kata (invoice)
+└── Services/
+    ├── DashboardService.php
+    ├── NotaService.php
+    ├── PricingCalculator.php
+    └── UserService.php</code></pre>
+            </div>
+        </div>
+        <div class="card">
+            <h4>Frontend</h4>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>resources/js/
+├── app.ts                  createInertiaApp + mount
+├── types/index.ts          SharedProps, pagination
+├── lib/
+│   ├── format.ts           rupiah(), tanggal
+│   ├── terbilang.ts        angka → kata (pratinjau invoice)
+│   ├── notify.ts           toast + dialog konfirmasi (SweetAlert2)
+│   ├── footer.ts           teks footer global (konstanta terenkode)
+│   └── ui.ts               class Tailwind bersama
+├── Components/
+│   ├── AppLayout.svelte    sidebar, topbar,
+│   │                        dark mode, toast, tooltip logout
+│   ├── CustomerLayout.svelte  header portal pelanggan
+│   ├── Auth/AuthShell.svelte
+│   ├── Nota/NotaForm.svelte
+│   ├── Nota/NotaInvoice.svelte  invoice A4 (staf & portal)
+│   └── Ui/                 Button, Modal, Badge,
+│                           Pagination, StatCard, AppFooter,
+│                           MonthlyChart, Icon, ...
+└── Pages/
+    ├── Auth/Login.svelte
+    ├── Auth/ForgotPassword.svelte
+    ├── Auth/ResetPassword.svelte
+    ├── Akun/Index.svelte   daftar nota pelanggan
+    ├── Akun/Show.svelte    detail + unduh PDF
+    ├── Dashboard.svelte
+    ├── Error.svelte
+    ├── Users/Index.svelte
+    ├── Karyawan/Index.svelte
+    ├── Pelanggan/Index.svelte
+    ├── Barang/Index.svelte
+    ├── Kiloan/Index.svelte
+    ├── JenisLayanan/Index.svelte
+    ├── Pengaturan/Index.svelte
+    └── Nota/
+        ├── Index.svelte
+        ├── Create.svelte
+        ├── Edit.svelte
+        └── Show.svelte
+
+resources/views/pdf/nota.blade.php  template PDF A4 (dompdf)</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Layer</th><th>Tanggung jawab</th></tr></thead>
+            <tbody>
+                <tr><td>Route</td><td>Menentukan URL serta middleware <code>auth</code>/<code>guest</code>/<code>permission:*</code>.</td></tr>
+                <tr><td>Controller</td><td>Validasi melalui FormRequest, memanggil service, mengembalikan response Inertia atau redirect + flash.</td></tr>
+                <tr><td>FormRequest</td><td>Aturan validasi dan <code>authorize()</code> berbasis permission/policy.</td></tr>
+                <tr><td>Service</td><td>Aturan bisnis, perhitungan harga, transaksi database, konsistensi snapshot.</td></tr>
+                <tr><td>Action</td><td>Operasi spesifik: pembuatan nomor nota unik dengan retry.</td></tr>
+                <tr><td>DTO</td><td>Membawa payload tervalidasi ke service tanpa bergantung pada request HTTP.</td></tr>
+                <tr><td>Policy</td><td>Otorisasi per record (contoh: hapus nota khusus admin).</td></tr>
+                <tr><td>Resource</td><td>Menyusun bentuk data yang dikirim ke props Inertia.</td></tr>
+                <tr><td>Enum</td><td>Nilai domain tetap: jenis nota dan role pengguna.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 id="alur">1.3 Alur request</h3>
+    <ol>
+        <li>Browser meminta URL; middleware session memulihkan login.</li>
+        <li>Route mencocokkan URL dan memeriksa <code>permission:*</code>; jika gagal menghasilkan 403.</li>
+        <li>Controller memvalidasi payload lewat FormRequest (termasuk otorisasi record).</li>
+        <li>Service menjalankan aturan bisnis di dalam <code>DB::transaction</code> bila menulis data.</li>
+        <li>Controller mengembalikan <code>Inertia::render()</code> dengan props, atau redirect + flash sukses/gagal.</li>
+        <li>Svelte merender halaman; toast SweetAlert2 membaca <code>flash</code> dari shared props,
+            menunggu dialog konfirmasi tertutup, lalu hilang otomatis setelah 4,5 detik.</li>
+    </ol>
+
+    <div class="callout info">
+        <strong>Error handling terpusat</strong>
+        <code>bootstrap/app.php</code> merender komponen <code>Error.svelte</code> untuk status
+        403/404/419/429/500/503, baik navigasi Inertia maupun request halaman penuh.
+        <code>DomainException</code> menjadi pesan flash error pada request web dan JSON 422 pada request JSON.
+    </div>
+
+    <h3 id="route">1.4 Peta route</h3>
+    <p>Dashboard berada di <code>/</code> (bukan <code>/dashboard</code>). Route staf memakai middleware <code>auth</code> + permission, portal pelanggan memakai <code>auth</code> + <code>pelanggan</code>, dan alur login/lupa/reset memakai <code>guest</code>.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Method</th><th>URI</th><th>Nama route</th><th>Permission</th><th>Fungsi</th></tr></thead>
+            <tbody>
+                <tr><td>GET</td><td><code>/login</code></td><td><code>login</code></td><td><code>guest</code></td><td>Form login.</td></tr>
+                <tr><td>POST</td><td><code>/login</code></td><td>—</td><td><code>guest</code> + rate limit</td><td>Autentikasi staf/pelanggan.</td></tr>
+                <tr><td>GET</td><td><code>/forgot-password</code></td><td><code>password.request</code></td><td><code>guest</code></td><td>Form permintaan tautan reset.</td></tr>
+                <tr><td>POST</td><td><code>/forgot-password</code></td><td><code>password.email</code></td><td><code>guest</code> + throttle 6/menit</td><td>Kirim tautan reset ke email.</td></tr>
+                <tr><td>GET</td><td><code>/reset-password/{token}</code></td><td><code>password.reset</code></td><td><code>guest</code></td><td>Form kata sandi baru.</td></tr>
+                <tr><td>POST</td><td><code>/reset-password</code></td><td><code>password.store</code></td><td><code>guest</code></td><td>Validasi token, simpan kata sandi baru.</td></tr>
+                <tr><td>POST</td><td><code>/logout</code></td><td><code>logout</code></td><td><code>auth</code></td><td>Logout + invalidasi session.</td></tr>
+                <tr><td>GET</td><td><code>/</code></td><td><code>dashboard</code></td><td><code>staff</code> + <code>dashboard.view</code></td><td>Dashboard KPI (staf).</td></tr>
+                <tr><td>GET</td><td><code>/akun</code></td><td><code>akun.index</code></td><td><code>pelanggan</code></td><td>Portal: ringkasan &amp; daftar nota sendiri.</td></tr>
+                <tr><td>GET</td><td><code>/akun/nota/{nota}</code></td><td><code>akun.nota.show</code></td><td><code>pelanggan</code></td><td>Detail invoice nota milik sendiri.</td></tr>
+                <tr><td>GET</td><td><code>/akun/nota/{nota}/pdf</code></td><td><code>akun.nota.pdf</code></td><td><code>pelanggan</code></td><td>Unduh PDF nota milik sendiri.</td></tr>
+                <tr><td>GET/POST/PUT/DELETE</td><td><code>/users...</code></td><td><code>users.*</code></td><td><code>users.manage</code></td><td>CRUD semua pengguna.</td></tr>
+                <tr><td>GET/POST/PUT/DELETE</td><td><code>/karyawan...</code></td><td><code>karyawan.*</code></td><td><code>karyawan.manage</code></td><td>CRUD akun role karyawan.</td></tr>
+                <tr><td>GET/POST/PUT/DELETE</td><td><code>/pelanggan...</code></td><td><code>pelanggan.*</code></td><td><code>pelanggan.manage</code></td><td>CRUD akun role pelanggan.</td></tr>
+                <tr><td>GET</td><td><code>/barang</code>, <code>/kiloan</code>, <code>/jenis-layanan</code></td><td><code>*.index</code></td><td><code>katalog.view</code></td><td>Daftar master data.</td></tr>
+                <tr><td>POST/PUT/DELETE</td><td><code>/barang...</code>, <code>/kiloan...</code>, <code>/jenis-layanan...</code></td><td><code>*.store/update/destroy</code></td><td><code>katalog.manage</code></td><td>Ubah master data.</td></tr>
+                <tr><td>GET</td><td><code>/nota</code></td><td><code>nota.index</code></td><td><code>nota.view</code></td><td>Daftar &amp; filter nota.</td></tr>
+                <tr><td>GET</td><td><code>/nota/export</code></td><td><code>nota.export</code></td><td><code>nota.export</code></td><td>Unduh CSV sesuai filter.</td></tr>
+                <tr><td>GET</td><td><code>/nota/create</code></td><td><code>nota.create</code></td><td><code>nota.create</code></td><td>Form nota baru.</td></tr>
+                <tr><td>POST</td><td><code>/nota/kiloan</code></td><td><code>nota.kiloan.store</code></td><td><code>nota.create</code></td><td>Simpan nota kiloan.</td></tr>
+                <tr><td>POST</td><td><code>/nota/satuan</code></td><td><code>nota.satuan.store</code></td><td><code>nota.create</code></td><td>Simpan nota satuan.</td></tr>
+                <tr><td>GET</td><td><code>/nota/{nota}</code></td><td><code>nota.show</code></td><td><code>nota.view</code></td><td>Detail + invoice cetak.</td></tr>
+                <tr><td>GET</td><td><code>/nota/{nota}/edit</code></td><td><code>nota.edit</code></td><td><code>nota.update</code></td><td>Form edit nota.</td></tr>
+                <tr><td>PUT</td><td><code>/nota/{nota}</code></td><td><code>nota.update</code></td><td><code>nota.update</code></td><td>Simpan perubahan nota.</td></tr>
+                <tr><td>DELETE</td><td><code>/nota/{nota}</code></td><td><code>nota.destroy</code></td><td><code>nota.delete</code></td><td>Hapus nota + barisnya.</td></tr>
+                <tr><td>GET</td><td><code>/pengaturan</code></td><td><code>pengaturan.edit</code></td><td><code>pengaturan.manage</code></td><td>Form identitas perusahaan.</td></tr>
+                <tr><td>POST</td><td><code>/pengaturan</code></td><td><code>pengaturan.update</code></td><td><code>pengaturan.manage</code></td><td>Simpan nama/logo perusahaan.</td></tr>
+                <tr><td>GET</td><td><code>/up</code></td><td>—</td><td>—</td><td>Health check bawaan Laravel.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 id="otorisasi">1.5 Peran dan permission</h3>
+    <p>Role dibuat oleh <code>RolePermissionSeeder</code>. Role <span class="pill pelanggan">pelanggan</span> tidak memiliki permission staf; aksesnya hanya ke portal <code>/akun</code> (middleware <code>pelanggan</code>) dan data difilter berdasarkan <code>pelanggan_id</code> akun yang login.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Permission</th><th>Admin</th><th>Karyawan</th><th>Pelanggan</th><th>Dipakai untuk</th></tr></thead>
+            <tbody>
+                <tr><td><code>dashboard.view</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Melihat dashboard.</td></tr>
+                <tr><td><code>users.manage</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td>CRUD semua pengguna.</td></tr>
+                <tr><td><code>karyawan.manage</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td>CRUD akun karyawan.</td></tr>
+                <tr><td><code>pelanggan.manage</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>CRUD akun pelanggan.</td></tr>
+                <tr><td><code>katalog.view</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Melihat barang, paket, layanan.</td></tr>
+                <tr><td><code>katalog.manage</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Ubah master katalog.</td></tr>
+                <tr><td><code>nota.view</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Daftar &amp; detail nota.</td></tr>
+                <tr><td><code>nota.create</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Buat nota kiloan/satuan.</td></tr>
+                <tr><td><code>nota.update</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Edit nota.</td></tr>
+                <tr><td><code>nota.delete</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td>Hapus nota.</td></tr>
+                <tr><td><code>nota.export</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Ekspor CSV.</td></tr>
+                <tr><td><code>pengaturan.manage</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td>Setup nama dan logo perusahaan.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="small muted">
+        Otorisasi berlapis: middleware permission pada route staf, <code>authorize()</code> pada FormRequest,
+        dan Policy untuk record tertentu. Portal pelanggan menambahkan middleware <code>pelanggan</code>
+        dan pemeriksaan kepemilikan record (nota/PDF pelanggan lain → 404). Menu sidebar juga
+        menyembunyikan tautan yang tidak diizinkan, tetapi keamanan tetap bergantung pada pemeriksaan server.
+    </p>
+
+    <h3 id="bisnis">1.6 Aturan bisnis utama</h3>
+    <div class="grid grid-2">
+        <div class="card">
+            <h4>Perhitungan kiloan</h4>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>total    = round(berat × harga_per_kg)
+diskon   = clamp(diskon, 0, 100)
+potongan = round(total × diskon / 100)
+jumlah   = total - potongan</code></pre>
+            </div>
+            <p class="small muted">Contoh: 3,5 kg × Rp20.000 = Rp70.000; diskon 10% → potongan Rp7.000; jumlah Rp63.000.</p>
+        </div>
+        <div class="card">
+            <h4>Perhitungan barang satuan</h4>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>per baris = round(harga × jumlah_barang)
+subtotal  = Σ total baris
+total     = subtotal + biaya_layanan
+potongan  = round(total × diskon / 100)
+jumlah    = total - potongan</code></pre>
+            </div>
+            <p class="small muted">Biaya layanan berasal dari jenis layanan yang dipilih dan disimpan sebagai snapshot pada nota.</p>
+        </div>
+    </div>
+
+    <ul>
+        <li><strong>Server adalah sumber kebenaran.</strong> Pratinjau total di form hanya bantuan UI; server menghitung ulang saat menyimpan.</li>
+        <li><strong>Snapshot harga.</strong> <code>notas.harga_per_kg</code>, <code>notas.biaya_layanan</code>, dan <code>nota_barangs.barang</code>/<code>harga</code> menyimpan nilai saat transaksi.</li>
+        <li><strong>Hapus master tidak menghapus riwayat.</strong> Foreign key master memakai <code>nullOnDelete</code>; nota tetap menampilkan snapshot.</li>
+        <li><strong>Nomor nota.</strong> Format <code>#</code> + 3 huruf kapital + 3 karakter alfanumerik, unik, dengan retry maksimal 20 kali.</li>
+        <li><strong>Transaksi database.</strong> Pembuatan dan pembaruan nota membungkus header + baris dalam satu transaksi.</li>
+        <li><strong>Diskon.</strong> Dibatasi 0–100 di server meskipun input form juga dibatasi.</li>
+        <li><strong>Edit nota.</strong> Menghitung ulang nominal dari master saat ini dan mengganti seluruh baris satuan.</li>
+        <li><strong>Terbilang.</strong> Total akhir dikonversi otomatis ke kata Bahasa Indonesia dengan akhiran “rupiah” (contoh: Rp125.000 → “Seratus dua puluh lima ribu rupiah”). Nilai resmi dihitung di server melalui <code>App\Support\Terbilang</code>; form memakai implementasi TypeScript yang sama untuk pratinjau.</li>
+        <li><strong>Identitas perusahaan.</strong> Satu baris tabel <code>pengaturan</code> menyimpan nama dan path logo; nilai ini dibagikan ke seluruh halaman melalui Inertia dan dipakai pada sidebar, halaman login, serta kop invoice.</li>
+        <li><strong>Pagination.</strong> Semua daftar memakai pagination server-side dengan pilihan 10/25/50/100 baris.</li>
+    </ul>
+
+    <h3 id="database">1.7 Database</h3>
+    <p>Delapan tabel domain ditambah tabel pendukung Laravel/Spatie.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Tabel</th><th>Kolom penting</th><th>Relasi / catatan</th></tr></thead>
+            <tbody>
+                <tr><td><code>users</code></td><td><code>name</code>, <code>email</code> unik, <code>jenis_kelamin</code>, <code>alamat</code>, <code>password</code></td><td>Menyimpan admin, karyawan, dan pelanggan. Role melalui Spatie.</td></tr>
+                <tr><td><code>barangs</code></td><td><code>name</code> unik, <code>harga</code></td><td>Barang satuan; dipakai baris nota.</td></tr>
+                <tr><td><code>kiloans</code></td><td><code>paket</code>, <code>harga</code>, <code>description</code></td><td>Paket kiloan; harga per kilogram.</td></tr>
+                <tr><td><code>jenis_layanans</code></td><td><code>jenis_cuci</code> unik, <code>waktu</code>, <code>harga</code></td><td>Layanan nota satuan; <code>harga</code> = biaya layanan.</td></tr>
+                <tr><td><code>notas</code></td><td><code>no_nota</code> unik, <code>jenis</code>, <code>pelanggan_id</code>, <code>nama_pelanggan</code>, <code>kiloan_id</code>, <code>jenis_layanan_id</code>, <code>berat</code>, <code>harga_per_kg</code>, <code>biaya_layanan</code>, <code>waktu</code>, <code>total_harga</code>, <code>diskon</code>, <code>jumlah</code></td><td>Header nota. Index pada <code>waktu</code>, <code>jenis</code>, <code>nama_pelanggan</code>.</td></tr>
+                <tr><td><code>nota_barangs</code></td><td><code>nota_id</code>, <code>barang_id</code>, <code>barang</code>, <code>harga</code>, <code>jumlah_barang</code>, <code>total_harga</code></td><td><code>nota_id</code> cascade delete; <code>barang_id</code> nullable <code>nullOnDelete</code>.</td></tr>
+                <tr><td><code>pengaturan</code></td><td><code>nama_perusahaan</code>, <code>logo_path</code> nullable</td><td>Satu baris identitas perusahaan; logo disimpan di public disk.</td></tr>
+                <tr><td><code>roles</code>, <code>permissions</code>, <code>model_has_roles</code>, <code>model_has_permissions</code>, <code>role_has_permissions</code></td><td>—</td><td>Tabel Spatie Permission.</td></tr>
+                <tr><td><code>sessions</code>, <code>cache</code>, <code>cache_locks</code>, <code>jobs</code>, <code>job_batches</code>, <code>failed_jobs</code>, <code>password_reset_tokens</code></td><td>—</td><td>Pendukung Laravel. <code>password_reset_tokens</code> dipakai alur lupa password; antrean job tidak dipakai.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h4>Relasi ringkas</h4>
+        <ul class="small">
+            <li><code>users</code> 1 — N <code>notas</code> melalui <code>pelanggan_id</code> (opsional; pelanggan umum tetap punya <code>nama_pelanggan</code>).</li>
+            <li><code>notas</code> 1 — N <code>nota_barangs</code>; menghapus nota menghapus barisnya.</li>
+            <li><code>barangs</code> 1 — N <code>nota_barangs</code> (opsional; snapshot tetap ada bila barang dihapus).</li>
+            <li><code>kiloans</code> 1 — N <code>notas</code> dan <code>jenis_layanans</code> 1 — N <code>notas</code> (opsional, <code>nullOnDelete</code>).</li>
+        </ul>
+    </div>
+
+    <h3 id="keamanan">1.8 Keamanan</h3>
+    <ul>
+        <li>Session auth + CSRF Inertia; password di-hash bcrypt; login dibatasi 5 percobaan per email+IP.</li>
+        <li>Reset password memakai token acak Laravel pada <code>password_reset_tokens</code>, kedaluwarsa dan sekali pakai; permintaan tautan dibatasi 6/menit dan selalu memberi pesan generik agar email tidak dapat ditebak.</li>
+        <li>Seluruh input divalidasi FormRequest; harga tidak pernah dipercaya dari klien.</li>
+        <li>Logo perusahaan divalidasi sebagai gambar PNG/JPG/JPEG/WEBP maksimal 2 MB; file lama dihapus saat diganti; akses ubah dibatasi permission <code>pengaturan.manage</code>.</li>
+        <li>Mass assignment dibatasi atribut <code>#[Fillable]</code>; data pengguna di-escape oleh Svelte.</li>
+        <li>Ekspor CSV memakai BOM UTF-8 dan mencegah formula injection (<code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>).</li>
+        <li>Portal pelanggan memfilter nota/PDF dengan <code>pelanggan_id</code> akun login; membuka data pelanggan lain menghasilkan 404 dan staf dialihkan dari <code>/akun</code>.</li>
+        <li>Kredensial demo hanya untuk lokal; <code>.env</code> tidak boleh ikut ter-upload ke repositori publik.</li>
+    </ul>
+</section>
+
+<section id="menu">
+    <h2>2. Fungsi Menu</h2>
+    <p class="lead">
+        Sidebar dibagi menjadi tiga kelompok: <strong>Operasional</strong>, <strong>Master Data</strong>,
+        dan <strong>Manajemen</strong>. Tautan hanya tampil bila pengguna memiliki permission terkait.
+    </p>
+
+    <h3 id="navigasi">2.1 Peta navigasi dan hak akses</h3>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Kelompok</th><th>Menu</th><th>URL</th><th>Admin</th><th>Karyawan</th><th>Pelanggan</th></tr></thead>
+            <tbody>
+                <tr><td>Operasional</td><td>Dashboard</td><td><code>/</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Operasional</td><td>Nota Transaksi</td><td><code>/nota</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Master Data</td><td>Harga Per Barang</td><td><code>/barang</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Master Data</td><td>Harga Paket Kiloan</td><td><code>/kiloan</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Master Data</td><td>Jenis Layanan</td><td><code>/jenis-layanan</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Manajemen</td><td>Karyawan</td><td><code>/karyawan</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Manajemen</td><td>Pelanggan</td><td><code>/pelanggan</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Manajemen</td><td>Pengguna</td><td><code>/users</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Manajemen</td><td>Setup</td><td><code>/pengaturan</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Portal</td><td>Akun Saya</td><td><code>/akun</code></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill yes">Ya</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="small muted">
+        Sidebar di atas hanya untuk staf. Pelanggan memakai layout portal ringkas (header + tombol
+        Keluar) dan tidak melihat menu operasional/master/manajemen.
+    </p>
+
+    <div class="card menu-card" id="menu-dashboard">
+        <header>
+            <h3>Dashboard</h3>
+            <span class="url">GET /</span>
+            <span class="pill admin">Admin</span><span class="pill karyawan">Karyawan</span>
+        </header>
+        <p>Ringkasan operasional dan pendapatan. Halaman awal staf setelah login; pelanggan diarahkan ke portal <code>/akun</code>.</p>
+        <ul>
+            <li><strong>Empat kartu KPI:</strong> total pendapatan seluruh nota, pendapatan bulan berjalan, total nota, dan jumlah paket kiloan (dengan keterangan jumlah pengguna terdaftar).</li>
+            <li><strong>Grafik batang 12 bulan:</strong> jumlah pendapatan per bulan pada tahun berjalan, dihitung dari kolom <code>waktu</code> transaksi.</li>
+            <li><strong>Nota terbaru:</strong> maksimal 6 nota terakhir, menampilkan nomor, pelanggan, jumlah, dan waktu; dapat diklik menuju detail.</li>
+            <li><strong>Tabel transaksi terbaru:</strong> nomor nota, jenis, pelanggan, waktu, dan jumlah.</li>
+            <li><strong>Tombol Buat Nota</strong> hanya muncul jika pengguna punya <code>nota.create</code>.</li>
+        </ul>
+    </div>
+
+    <div class="card menu-card" id="menu-nota">
+        <header>
+            <h3>Nota Transaksi</h3>
+            <span class="url">GET /nota</span>
+            <span class="pill admin">Admin</span><span class="pill karyawan">Karyawan</span>
+        </header>
+        <p>Riwayat seluruh nota kiloan dan barang satuan dengan pencarian, filter, pagination, dan ekspor.</p>
+        <div class="grid grid-2">
+            <div>
+                <h4>Filter</h4>
+                <ul class="small">
+                    <li>Pencarian teks pada <strong>nomor nota</strong> atau <strong>nama pelanggan</strong>.</li>
+                    <li>Filter jenis: semua, Barang Satuan, atau Paket Kiloan.</li>
+                    <li>Rentang tanggal <em>dari</em> dan <em>sampai</em> (tanggal kosong = tanpa batas).</li>
+                    <li>Jumlah baris per halaman: 10, 25, 50, atau 100.</li>
+                    <li>Tombol <strong>Terapkan</strong> dan <strong>Reset</strong>.</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Aksi</h4>
+                <ul class="small">
+                    <li><strong>Lihat</strong> (ikon mata) → detail nota.</li>
+                    <li><strong>Ubah</strong> (ikon pensil) hanya jika punya <code>nota.update</code>.</li>
+                    <li><strong>Hapus</strong> (ikon tempat sampah) hanya admin (<code>nota.delete</code>), dengan dialog konfirmasi.</li>
+                    <li><strong>Ekspor CSV</strong> mengikuti filter aktif.</li>
+                    <li><strong>Buat Nota</strong> jika punya <code>nota.create</code>.</li>
+                </ul>
+            </div>
+        </div>
+        <h4>Ekspor CSV</h4>
+        <p class="small">
+            Nama berkas <code>laporan-nota-YYYYMMDD-HHMMSS.csv</code>, UTF-8 dengan BOM agar rapi di Excel.
+            Urutan baris kronologis. Kolom:
+        </p>
+        <p class="small">
+            <code>No Nota</code>, <code>Jenis</code>, <code>Nama Pelanggan</code>, <code>Layanan</code>,
+            <code>Waktu</code>, <code>Berat (kg)</code>, <code>Harga per kg</code>, <code>Biaya Layanan</code>,
+            <code>Total Harga</code>, <code>Diskon (%)</code>, <code>Jumlah</code>.
+        </p>
+        <p class="small muted">Teks yang dimulai dengan <code>=</code>, <code>+</code>, <code>-</code>, atau <code>@</code> diberi awalan apostrof untuk mencegah formula injection.</p>
+    </div>
+
+    <div class="card menu-card" id="menu-buat">
+        <header>
+            <h3>Buat Nota</h3>
+            <span class="url">GET /nota/create</span>
+            <span class="pill admin">Admin</span><span class="pill karyawan">Karyawan</span>
+        </header>
+        <p>Form transaksi baru. Pengguna memilih salah satu jenis: <strong>Nota Kiloan</strong> atau <strong>Nota Barang Satuan</strong>.</p>
+
+        <h4>Nota Kiloan</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Field</th><th>Aturan</th><th>Catatan</th></tr></thead>
+                <tbody>
+                    <tr><td>Nama Pelanggan</td><td>Wajib, teks</td><td>Terisi otomatis bila memilih pelanggan terdaftar; tetap bisa diubah.</td></tr>
+                    <tr><td>Pelanggan Terdaftar</td><td>Opsional</td><td>Pilihan dari akun role pelanggan; nilai kosong = pelanggan umum.</td></tr>
+                    <tr><td>Paket Kiloan</td><td>Wajib</td><td>Menampilkan harga per kg dari master.</td></tr>
+                    <tr><td>Berat Cucian (kg)</td><td>Wajib, 0,1–1000 kg</td><td>Input mendukung dua desimal, contoh: 3,50.</td></tr>
+                    <tr><td>Waktu Transaksi</td><td>Wajib</td><td>Default waktu saat ini, dapat diubah.</td></tr>
+                    <tr><td>Diskon (%)</td><td>0–100</td><td>Server tetap membatasi nilai di luar rentang.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>Nota Barang Satuan</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Field</th><th>Aturan</th><th>Catatan</th></tr></thead>
+                <tbody>
+                    <tr><td>Nama Pelanggan</td><td>Wajib, teks</td><td>Sama seperti kiloan.</td></tr>
+                    <tr><td>Pelanggan Terdaftar</td><td>Opsional</td><td>Sama seperti kiloan.</td></tr>
+                    <tr><td>Jenis Layanan</td><td>Wajib</td><td>Menentukan biaya layanan yang ditambahkan ke total.</td></tr>
+                    <tr><td>Waktu Transaksi</td><td>Wajib</td><td>Default waktu saat ini.</td></tr>
+                    <tr><td>Diskon (%)</td><td>0–100</td><td>Diterapkan pada total (barang + biaya layanan).</td></tr>
+                    <tr><td>Daftar Barang</td><td>Minimal 1 baris; barang wajib; jumlah &ge; 1</td><td>Bisa tambah/hapus baris. Subtotal per baris dihitung langsung.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="small">
+            Panel ringkasan di sisi kanan menampilkan harga, subtotal, biaya layanan, potongan, jumlah
+            bayar, dan <strong>terbilang otomatis</strong>. Setelah disimpan, pengguna diarahkan ke
+            halaman invoice dengan toast sukses. Jenis nota tidak dapat diubah setelah dibuat.
+        </p>
+    </div>
+
+    <div class="card menu-card" id="menu-detail">
+        <header>
+            <h3>Detail Nota dan Cetak Invoice</h3>
+            <span class="url">GET /nota/{id}</span>
+            <span class="pill admin">Admin</span><span class="pill karyawan">Karyawan</span>
+        </header>
+        <p>Menampilkan dokumen invoice A4 dan ringkasan transaksi. Siap dicetak dari browser.</p>
+        <ul>
+            <li><strong>Kop invoice:</strong> logo dan nama perusahaan dari menu Setup; bila belum ada logo, tampil ikon baju sebagai fallback. Nomor invoice dan waktu berada di sisi kanan.</li>
+            <li><strong>Informasi pelanggan dan layanan:</strong> nama/email pelanggan terdaftar, jenis layanan, serta keterangan paket kiloan atau daftar barang.</li>
+            <li><strong>Tabel item:</strong> deskripsi, qty/berat, harga, dan jumlah. Nota satuan menampilkan tiap barang plus baris biaya layanan.</li>
+            <li><strong>Ringkasan pembayaran:</strong> subtotal, diskon dan potongan, total bayar, serta kotak terbilang Bahasa Indonesia.</li>
+            <li><strong>Tombol Cetak Invoice</strong> memanggil print browser. CSS <code>@page size: A4</code> menyembunyikan sidebar, header halaman, tombol, dan panel ringkasan layar (<code>.no-print</code>), lalu mencetak dokumen putih dengan margin 14 mm.</li>
+            <li><strong>Tombol Ubah</strong> tampil jika punya <code>nota.update</code>; <strong>Hapus</strong> hanya untuk admin (<code>nota.delete</code>).</li>
+            <li><strong>Panel layar:</strong> ringkasan, terbilang, sumber harga tersimpan, dan rincian barang.</li>
+        </ul>
+        <div class="callout info">
+            <strong>Snapshot harga</strong>
+            Nota lama tidak berubah ketika harga master diperbarui atau master dihapus. Nilai yang
+            tercetak berasal dari data yang tersimpan pada nota.
+        </div>
+    </div>
+
+    <div class="card menu-card" id="menu-edit">
+        <header>
+            <h3>Edit dan Hapus Nota</h3>
+            <span class="url">GET/PUT/DELETE /nota/{id}</span>
+            <span class="pill admin">Admin</span><span class="pill karyawan">Karyawan</span>
+        </header>
+        <h4>Edit</h4>
+        <ul>
+            <li>Form sama dengan pembuatan; jenis nota tetap dan tidak dapat diganti.</li>
+            <li>Nominal dihitung ulang dari master saat ini, termasuk snapshot harga baru.</li>
+            <li>Untuk nota satuan, seluruh baris lama diganti dengan baris pada form.</li>
+            <li>Setelah simpan, kembali ke detail dengan toast sukses.</li>
+        </ul>
+        <h4>Hapus</h4>
+        <ul>
+            <li>Hanya admin. Karyawan tidak melihat tombol dan endpoint DELETE menghasilkan 403.</li>
+            <li>Dialog konfirmasi menjelaskan bahwa baris barang pada nota ikut dihapus.</li>
+            <li>Header dihapus, baris <code>nota_barangs</code> terhapus melalui cascade.</li>
+        </ul>
+    </div>
+
+    <div class="card menu-card" id="menu-master">
+        <header>
+            <h3>Master Data</h3>
+            <span class="url">/barang · /kiloan · /jenis-layanan</span>
+            <span class="pill admin">Admin</span><span class="pill karyawan">Karyawan</span>
+        </header>
+        <div class="grid grid-3">
+            <div>
+                <h4>Harga Per Barang</h4>
+                <p class="small">Daftar barang satuan beserta harga per item (route tetap <code>/barang</code>).</p>
+                <ul class="small">
+                    <li>Field: nama barang (unik) dan harga satuan.</li>
+                    <li>Pencarian nama dan pagination.</li>
+                    <li>Tambah/ubah lewat modal; hapus dengan konfirmasi.</li>
+                    <li>Menghapus barang tidak mengubah nota lama karena snapshot.</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Harga Paket Kiloan</h4>
+                <p class="small">Paket cucian berdasarkan berat dengan harga per kg (route tetap <code>/kiloan</code>).</p>
+                <ul class="small">
+                    <li>Field: nama paket, harga per kg, deskripsi opsional.</li>
+                    <li>Pencarian, pagination, CRUD modal; ikon menu bergaya mesin cuci.</li>
+                    <li>Harga dipakai saat membuat nota kiloan.</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Jenis Layanan</h4>
+                <p class="small">Layanan cuci untuk nota barang satuan.</p>
+                <ul class="small">
+                    <li>Field: jenis cuci (unik), estimasi waktu (teks), biaya layanan.</li>
+                    <li>Biaya layanan ditambahkan ke total nota satuan.</li>
+                    <li>Estimasi waktu hanya informasi, tidak dipakai perhitungan.</li>
+                </ul>
+            </div>
+        </div>
+        <p class="small muted">Semua master data dapat dilihat dengan <code>katalog.view</code> dan diubah dengan <code>katalog.manage</code> (admin &amp; karyawan).</p>
+    </div>
+
+    <div class="card menu-card" id="menu-orang">
+        <header>
+            <h3>Pelanggan, Karyawan, dan Pengguna</h3>
+            <span class="url">/pelanggan · /karyawan · /users</span>
+        </header>
+
+        <h4>Pelanggan <span class="pill admin">Admin</span><span class="pill karyawan">Karyawan</span></h4>
+        <ul>
+            <li>Mengelola akun dengan role <code>pelanggan</code>; akun ini hanya dapat masuk ke portal <code>/akun</code>, bukan halaman staf.</li>
+            <li>Field: nama, email (unik), jenis kelamin, alamat, password + konfirmasi (minimal 8 karakter).</li>
+            <li>Pencarian nama/email, pagination, tambah/ubah lewat modal, hapus dengan konfirmasi.</li>
+            <li>Pelanggan yang dihapus tidak menghapus nota; nota tetap memiliki <code>nama_pelanggan</code>.</li>
+        </ul>
+
+        <h4>Karyawan <span class="pill admin">Admin</span></h4>
+        <ul>
+            <li>Mengelola akun role <code>karyawan</code>; role ditetapkan otomatis, tidak bisa dipilih.</li>
+            <li>Field sama dengan pelanggan; password opsional saat edit.</li>
+            <li>Hanya admin yang dapat mengakses menu dan endpoint-nya.</li>
+        </ul>
+
+        <h4>Pengguna <span class="pill admin">Admin</span></h4>
+        <ul>
+            <li>Mengelola seluruh akun, termasuk menetapkan role admin, karyawan, atau pelanggan.</li>
+            <li>Filter peran, pencarian nama/email, pagination, CRUD lewat modal.</li>
+            <li>Password wajib saat membuat; opsional saat mengedit (kosong = tidak diubah).</li>
+            <li>Admin tidak dapat menghapus akunnya sendiri; admin terakhir juga tidak dapat dihapus.</li>
+            <li>Menghapus akun pelanggan tidak menghapus riwayat nota.</li>
+        </ul>
+    </div>
+
+    <div class="card menu-card" id="menu-setup">
+        <header>
+            <h3>Setup Identitas Perusahaan</h3>
+            <span class="url">GET/POST /pengaturan</span>
+            <span class="pill admin">Admin</span>
+        </header>
+        <p>Mengelola nama dan logo perusahaan yang dipakai pada sidebar, halaman login, dan kop invoice.</p>
+        <ul>
+            <li><strong>Nama perusahaan:</strong> wajib, maksimal 120 karakter; tersimpan pada tabel <code>pengaturan</code>.</li>
+            <li><strong>Logo:</strong> unggah PNG, JPG/JPEG, atau WEBP maksimal 2 MB; pratinjau langsung sebelum disimpan; logo lama otomatis dihapus saat diganti.</li>
+            <li><strong>Penyimpanan:</strong> public disk (<code>storage/app/public/logos</code>) dengan symlink <code>public/storage</code>; bukan state frontend.</li>
+            <li><strong>Umpan balik:</strong> pesan sukses “Informasi perusahaan berhasil disimpan.” dan pesan validasi per field.</li>
+            <li><strong>Keamanan:</strong> hanya admin dengan permission <code>pengaturan.manage</code>; karyawan mendapat 403.</li>
+            <li><strong>Efek langsung:</strong> nama/logo baru tampil pada invoice dan brand sidebar setelah disimpan.</li>
+        </ul>
+        <div class="callout warn">
+            <strong>Wajib menjalankan <code>php artisan storage:link</code></strong>
+            Tanpa symlink tersebut, file logo tersimpan tetapi tidak dapat ditampilkan browser
+            (URL <code>/storage/logos/...</code> menghasilkan 404).
+        </div>
+    </div>
+
+    <div class="card menu-card" id="menu-portal">
+        <header>
+            <h3>Portal Pelanggan</h3>
+            <span class="url">GET /akun</span>
+            <span class="pill pelanggan">Pelanggan</span>
+        </header>
+        <p>Halaman khusus pelanggan yang berhasil login. Semua data dibatasi pada nota milik akun tersebut.</p>
+        <ul>
+            <li><strong>Ringkasan:</strong> jumlah nota dan total biaya (Σ <code>jumlah</code>) milik pelanggan.</li>
+            <li><strong>Daftar nota:</strong> nomor, jenis, waktu, dan jumlah; tabel di desktop dan kartu di layar kecil; pagination 10 per halaman.</li>
+            <li><strong>Detail:</strong> invoice A4 yang sama dengan halaman staf (kop perusahaan, rincian item, diskon, total, terbilang).</li>
+            <li><strong>Unduh PDF:</strong> <code>GET /akun/nota/{id}/pdf</code> menghasilkan berkas <code>nota-{nomor}.pdf</code> dari dompdf; dapat disimpan atau dicetak dari penampil PDF.</li>
+            <li><strong>Batas akses:</strong> nota/PDF pelanggan lain → 404; staf yang membuka <code>/akun</code> dialihkan ke dashboard; pelanggan tidak dapat membuat, mengubah, atau menghapus nota.</li>
+        </ul>
+        <div class="callout info">
+            <strong>Sumber data pelanggan</strong>
+            Relasi memakai <code>notas.pelanggan_id</code>. Nota lama tanpa pelanggan terdaftar
+            (teks bebas) tidak muncul di portal mana pun sampai dihubungkan ke akun pelanggan.
+        </div>
+    </div>
+
+    <div class="card menu-card" id="menu-global">
+        <header>
+            <h3>Fitur global antarmuka</h3>
+        </header>
+        <div class="grid grid-2">
+            <ul class="small">
+                <li><strong>Login:</strong> email, kata sandi dengan tombol mata untuk menampilkan/menyembunyikan isian, dan opsi “Ingat saya”; pesan galat inline; staf diarahkan ke dashboard dan pelanggan ke portal <code>/akun</code>.</li>
+                <li><strong>Lupa password:</strong> tautan di bawah field kata sandi menuju halaman permintaan reset; respons selalu generik untuk mencegah enumerasi email.</li>
+                <li><strong>Halaman reset:</strong> terpisah dari login, memvalidasi token + email + kata sandi baru minimal 8 karakter dan konfirmasi; setelah berhasil diarahkan ke login.</li>
+                <li><strong>Toast:</strong> notifikasi sukses/gagal tampil di kanan atas dengan progress bar dan tombol tutup; menunggu dialog konfirmasi tertutup dan hilang otomatis setelah 4,5 detik.</li>
+                <li><strong>Konfirmasi hapus:</strong> dialog SweetAlert2 dengan judul aksi, pesan kontekstual, tombol <em>Ya, hapus</em> (rose) dan <em>Batal</em> (fokus awal), bertema oranye/rose termasuk mode gelap.</li>
+                <li><strong>Footer global:</strong> bar ringkas <em>fixed</em> di dasar layar untuk dashboard/seluruh halaman staf — selalu terlihat saat konten digeser dan kiri mengikuti lebar sidebar — berisi “Developed with ❤️ by Eko Subianto”, <em>Free to Use · Voluntary Donation</em>, dan hak cipta; footer ringkas tampil di bawah kartu login, bar fixed yang sama tampil di portal pelanggan, dan <code>.no-print</code> saat cetak. Teks footer tidak ditulis langsung di template: semuanya dibaca dari konstanta <code>FOOTER</code> di <code>lib/footer.ts</code> yang disimpan XOR + base64, didekode saat dimuat, dan dibekukan dengan <code>Object.freeze</code>.</li>
+                <li><strong>Dark mode:</strong> tombol di bawah sidebar; preferensi disimpan di <code>localStorage</code>.</li>
+                <li><strong>Sidebar:</strong> gradien oranye hangat (light/dark) dengan tombol hamburger untuk merampingkan menu menjadi rail ikon di desktop; pilihan tersimpan di <code>localStorage</code>.</li>
+                <li><strong>Responsif:</strong> sidebar menjadi drawer pada layar kecil; tabel dapat digeser horizontal.</li>
+                <li><strong>Latar konsisten:</strong> halaman login memakai gradasi hangat (radial + linear) yang selaras dengan sidebar, panel brand oranye gelap, input dengan fokus oranye, dan tombol gradient oranye—baik mode terang maupun gelap.</li>
+            </ul>
+            <ul class="small">
+                <li><strong>Format Rupiah:</strong> semua nominal memakai pemisah ribuan <code>id-ID</code>.</li>
+                <li><strong>Terbilang:</strong> total invoice otomatis ditulis dalam kata Bahasa Indonesia dengan akhiran “rupiah”.</li>
+                <li><strong>Logout:</strong> tombol di kartu pengguna dengan tooltip “Logout” (hover dan fokus keyboard); session diinvalidasi dan kembali ke login.</li>
+                <li><strong>Ikon menu kiloan:</strong> ikon mesin cuci SVG dari pustaka ikon internal, bukan emoji.</li>
+                <li><strong>Halaman error:</strong> 403, 404, 419, 429, 500, dan 503 memakai layout aplikasi bila sudah login.</li>
+                <li><strong>Akses langsung URL terlarang:</strong> ditolak server (403), bukan hanya menu yang disembunyikan.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section id="deploy">
+    <h2>3. Deploy</h2>
+    <p class="lead">
+        Aplikasi dapat dijalankan di VPS (disarankan, kontrol penuh dan bisa memakai Artisan) atau
+        shared hosting (tanpa SSH, deployment memakai aset dan SQL yang disiapkan dari komputer lokal).
+    </p>
+
+    <h3 id="kebutuhan">3.1 Kebutuhan server</h3>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Kebutuhan</th><th>Versi / keterangan</th></tr></thead>
+            <tbody>
+                <tr><td>PHP</td><td>8.3 atau lebih baru (diuji 8.4). Ekstensi: <code>pdo_mysql</code>, <code>mbstring</code>, <code>openssl</code>, <code>xml</code>, <code>dom</code>, <code>curl</code>, <code>ctype</code>, <code>fileinfo</code>, <code>tokenizer</code>, <code>zip</code>, <code>bcmath</code> (<code>dom</code> dipakai dompdf untuk PDF nota).</td></tr>
+                <tr><td>Database</td><td>MySQL 8 (diuji). MariaDB modern dengan InnoDB umumnya kompatibel tetapi tidak diuji pada proyek ini.</td></tr>
+                <tr><td>Web server</td><td>Nginx atau Apache dengan modul rewrite. Document root <strong>wajib</strong> mengarah ke folder <code>public</code>.</td></tr>
+                <tr><td>Composer</td><td>Composer 2 untuk memasang dependensi backend.</td></tr>
+                <tr><td>Node.js</td><td>Hanya untuk build aset: Vite 8 membutuhkan Node <code>^20.19.0</code> atau <code>&gt;=22.12.0</code>.</td></tr>
+                <tr><td>Storage</td><td>Folder <code>storage</code> dan <code>bootstrap/cache</code> harus dapat ditulis proses PHP. Jalankan <code>php artisan storage:link</code> agar logo perusahaan (<code>storage/app/public/logos</code>) dapat diakses lewat <code>public/storage</code>.</td></tr>
+                <tr><td>Email (opsional)</td><td>SMTP untuk mengirim tautan lupa password. Tanpa SMTP, <code>MAIL_MAILER=log</code> menulis tautan ke <code>storage/logs/laravel.log</code>.</td></tr>
+                <tr><td>Queue / cron</td><td>Tidak wajib. Aplikasi tidak memakai job antrean maupun scheduled task.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 id="checklist">3.2 Checklist sebelum deploy</h3>
+    <div class="card">
+        <ul class="checklist">
+            <li><code>APP_ENV=production</code> dan <code>APP_DEBUG=false</code>.</li>
+            <li><code>APP_KEY</code> terisi dan tidak berubah setelah data dibuat.</li>
+            <li><code>APP_URL</code> memakai URL HTTPS final (tanpa garis miring di akhir).</li>
+            <li><code>APP_TIMEZONE=Asia/Jakarta</code> dan <code>APP_LOCALE=id</code>.</li>
+            <li>Kredensial database produksi sudah dibuat; bukan akun root.</li>
+            <li><code>public/build/manifest.json</code> ada (hasil <code>npm run build</code>).</li>
+            <li>File <code>public/hot</code> <strong>dihapus</strong> — file ini hanya untuk mode pengembangan.</li>
+            <li>Folder <code>storage</code> dan <code>bootstrap/cache</code> dapat ditulis.</li>
+            <li><code>php artisan storage:link</code> sudah dijalankan (logo Setup tampil).</li>
+            <li>SMTP terisi bila fitur lupa password dipakai; uji satu email reset.</li>
+            <li>Kredensial demo diganti atau data demo tidak dipakai.</li>
+            <li>HTTPS aktif dan cookie sesi berfungsi.</li>
+        </ul>
+    </div>
+
+    <div class="callout danger">
+        <strong>Jangan pernah deploy <code>public/hot</code></strong>
+        Saat <code>npm run dev</code> berjalan, Laravel membuat <code>public/hot</code> berisi alamat
+        Vite lokal (mis. <code>http://127.0.0.1:5173</code>). Jika file ini ikut ter-upload, browser
+        produksi akan mencoba memuat aset dari komputer pengembang dan halaman tampil tanpa CSS/JS.
+        Hapus file tersebut setelah build produksi.
+    </div>
+
+    <h3 id="vps">3.3 Deploy ke VPS (Ubuntu + Nginx)</h3>
+    <p>Contoh berikut memakai Ubuntu 22.04/24.04, PHP 8.4, MySQL 8, Nginx, dan Node 22 untuk build. Sesuaikan nama domain dan path.</p>
+
+    <ol class="steps">
+        <li>
+            <strong>Pasang paket dasar</strong>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>sudo apt update
+sudo apt install -y nginx mysql-server unzip git curl
+sudo add-apt-repository ppa:ondrej/php -y
+sudo apt update
+sudo apt install -y php8.4-fpm php8.4-cli php8.4-mysql php8.4-mbstring \
+  php8.4-xml php8.4-curl php8.4-zip php8.4-bcmath
+
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs</code></pre>
+            </div>
+            <p class="small muted">Jika distro sudah menyediakan PHP 8.3, komponen <code>php8.3-*</code> juga memenuhi syarat minimum Laravel 13.</p>
+        </li>
+
+        <li>
+            <strong>Buat database dan user MySQL</strong>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>sudo mysql</code></pre>
+            </div>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>CREATE DATABASE laundry CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'laundry'@'localhost' IDENTIFIED BY 'PASSWORD_DATABASE_KUAT';
+GRANT ALL PRIVILEGES ON laundry.* TO 'laundry'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;</code></pre>
+            </div>
+        </li>
+
+        <li>
+            <strong>Ambil kode aplikasi</strong>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>sudo mkdir -p /var/www/laundry
+sudo chown $USER:www-data /var/www/laundry
+git clone ALAMAT_REPOSITORI /var/www/laundry
+cd /var/www/laundry</code></pre>
+            </div>
+            <p class="small muted">Tanpa Git, unggah arsip proyek (tanpa <code>node_modules</code> dan <code>.git</code>) ke folder tersebut.</p>
+        </li>
+
+        <li>
+            <strong>Pasang dependensi PHP dan siapkan environment</strong>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>composer install --no-dev --optimize-autoloader
+cp .env.example .env
+php artisan key:generate
+nano .env</code></pre>
+            </div>
+            <p class="small">Isi nilai produksi seperti pada tabel <a href="#env-produksi">environment produksi</a> di Lampiran.</p>
+        </li>
+
+        <li>
+            <strong>Build aset frontend</strong>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>npm ci
+npm run build
+rm -f public/hot</code></pre>
+            </div>
+            <p class="small muted">Build menghasilkan <code>public/build/manifest.json</code> dan aset ter-hash. Node tidak perlu berjalan terus di server.</p>
+        </li>
+
+        <li>
+            <strong>Jalankan migrasi dan siapkan akun</strong>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>php artisan migrate --force
+php artisan db:seed --class=RolePermissionSeeder --force
+php artisan db:seed --class=PengaturanSeeder --force
+php artisan storage:link</code></pre>
+            </div>
+            <p class="small">Perintah di atas hanya membuat role/permission dan identitas perusahaan default, tanpa data demo. Kemudian isi nama/logo lewat menu Setup. Buat admin pertama:</p>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>php artisan tinker --execute="App\Models\User::create(['name' => 'Admin', 'email' => 'admin@domainanda.com', 'password' => bcrypt('GANTI_PASSWORD_KUAT')])->assignRole('admin');"</code></pre>
+            </div>
+            <p class="small muted">Untuk keperluan demo, <code>php artisan migrate:fresh --seed --force</code> membuat seluruh data contoh (lihat <a href="#data-produksi">Data produksi</a>).</p>
+        </li>
+
+        <li>
+            <strong>Cache konfigurasi dan atur izin folder</strong>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+sudo chown -R www-data:www-data storage bootstrap/cache
+sudo find storage bootstrap/cache -type d -exec chmod 775 {} \;
+sudo find storage bootstrap/cache -type f -exec chmod 664 {} \;</code></pre>
+            </div>
+        </li>
+
+        <li>
+            <strong>Konfigurasi Nginx</strong>
+            <p class="small">Buat <code>/etc/nginx/sites-available/laundry</code>:</p>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>server {
+    listen 80;
+    server_name laundry.domainanda.com;
+    root /var/www/laundry/public;
+    index index.php;
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}</code></pre>
+            </div>
+        </li>
+
+        <li>
+            <strong>Aktifkan situs dan HTTPS</strong>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>sudo ln -s /etc/nginx/sites-available/laundry /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d laundry.domainanda.com</code></pre>
+            </div>
+            <p class="small muted">Certbot menambahkan konfigurasi HTTPS dan redirect. Setelah itu pastikan <code>APP_URL</code> memakai <code>https://</code>.</p>
+        </li>
+
+        <li>
+            <strong>Verifikasi</strong>
+            <p class="small">
+                Buka <code>https://laundry.domainanda.com/up</code> (harus 200), lalu halaman login.
+                Periksa login admin, dashboard, pembuatan nota, cetak, dan ekspor CSV. Pantau
+                <code>storage/logs/laravel.log</code> bila ada kendala.
+            </p>
+        </li>
+    </ol>
+
+    <h4 id="env-produksi">Environment produksi (contoh)</h4>
+    <div class="code">
+        <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>APP_NAME="Laundry Management"
+APP_ENV=production
+APP_KEY=base64:HASIL_KEY_GENERATE
+APP_DEBUG=false
+APP_URL=https://laundry.domainanda.com
+APP_TIMEZONE=Asia/Jakarta
+APP_LOCALE=id
+APP_FALLBACK_LOCALE=en
+
+LOG_CHANNEL=stack
+LOG_LEVEL=warning
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=laundry
+DB_USERNAME=laundry
+DB_PASSWORD=PASSWORD_DATABASE_KUAT
+
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_SECURE_COOKIE=true
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+
+# Lupa password: gunakan log saat pengembangan, SMTP saat produksi
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.domainanda.com
+MAIL_PORT=587
+MAIL_USERNAME=no-reply@domainanda.com
+MAIL_PASSWORD=RAHASIA_SMTP
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@domainanda.com
+MAIL_FROM_NAME="${APP_NAME}"</code></pre>
+    </div>
+    <p class="small muted">
+        <code>SESSION_DRIVER=database</code> memakai tabel <code>sessions</code> hasil migrasi.
+        <code>QUEUE_CONNECTION=sync</code> aman karena belum ada job antrean.
+        <code>SESSION_SECURE_COOKIE=true</code> hanya aktifkan setelah HTTPS berjalan.
+        Untuk pengembangan tanpa SMTP, <code>MAIL_MAILER=log</code> menulis tautan reset ke
+        <code>storage/logs/laravel.log</code>. Setelah mengubah <code>.env</code> di server,
+        jalankan <code>php artisan config:clear</code> (atau <code>config:cache</code> ulang).
+        Token reset disimpan pada <code>password_reset_tokens</code>, kedaluwarsa, dan sekali pakai.
+    </p>
+
+    <h3 id="shared-hosting">3.4 Deploy ke shared hosting (tanpa SSH)</h3>
+    <p>
+        Shared hosting seperti Hostinger hPanel umumnya tidak menyediakan SSH/Composer/Artisan.
+        Karena itu, <strong>dependensi dan aset dibangun di komputer lokal</strong>, database disiapkan
+        sebagai file SQL, lalu diunggah. Langkah berikut memakai hPanel sebagai contoh; istilah menu
+        dapat sedikit berbeda pada penyedia lain.
+    </p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Aspek</th><th>VPS</th><th>Shared hosting tanpa SSH</th></tr></thead>
+            <tbody>
+                <tr><td>Composer</td><td>Dijalankan di server.</td><td>Folder <code>vendor</code> dibangun lokal lalu diunggah.</td></tr>
+                <tr><td>Build aset</td><td><code>npm run build</code> di server.</td><td>Build lokal, unggah <code>public/build</code>.</td></tr>
+                <tr><td>Migrasi/seed</td><td><code>php artisan migrate --seed</code>.</td><td>Database disiapkan lokal, diekspor ke SQL, diimpor lewat phpMyAdmin.</td></tr>
+                <tr><td>APP_KEY</td><td><code>php artisan key:generate</code>.</td><td>Generate lokal dengan <code>--show</code>, tempel ke <code>.env</code>.</td></tr>
+                <tr><td>Cache config</td><td>Artisan tersedia.</td><td>Tidak perlu; jangan unggah cache config dari lokal.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <ol class="steps">
+        <li>
+            <strong>Siapkan build di komputer lokal</strong>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>composer install --no-dev --optimize-autoloader
+npm ci
+npm run build
+php artisan key:generate --show</code></pre>
+            </div>
+            <p class="small">
+                Catat hasil <code>APP_KEY=base64:...</code>. Pastikan versi PHP lokal sama dengan
+                hosting (8.3/8.4). Jalankan <code>composer check-platform-reqs</code> untuk memeriksa
+                ekstensi yang dibutuhkan. <strong>Hapus <code>public/hot</code></strong> sebelum ZIP.
+            </p>
+        </li>
+
+        <li>
+            <strong>Siapkan database produksi dan ekspor SQL</strong>
+            <p class="small">
+                Gunakan database lokal terpisah, jangan <code>migrate:fresh</code> pada database
+                pengembangan yang berisi data penting. Ubah sementara <code>DB_DATABASE</code> ke
+                database persiapan, lalu:
+            </p>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>php artisan migrate --force
+php artisan db:seed --class=RolePermissionSeeder --force
+php artisan db:seed --class=PengaturanSeeder --force
+php artisan tinker --execute="App\Models\User::create(['name' => 'Admin', 'email' => 'admin@domainanda.com', 'password' => bcrypt('GANTI_PASSWORD_KUAT')])->assignRole('admin');"</code></pre>
+            </div>
+            <p class="small">Ekspor database lewat phpMyAdmin/HeidiSQL, atau:</p>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>mysqldump -u root -p nama_database_persiapan &gt; laundry_prod.sql</code></pre>
+            </div>
+            <p class="small muted">Pada Laragon, <code>mysqldump.exe</code> ada di <code>C:/laragon/bin/mysql/</code> (versi folder dapat berbeda).</p>
+        </li>
+
+        <li>
+            <strong>Buat database di hPanel</strong>
+            <p class="small">
+                Masuk hPanel → <strong>Databases → MySQL Databases</strong>. Buat database dan user,
+                catat host (biasanya <code>localhost</code>), nama database, username, dan password.
+                Nama biasanya berprefix akun hosting.
+            </p>
+        </li>
+
+        <li>
+            <strong>Unggah aplikasi</strong>
+            <p class="small">
+                Lewat <strong>File Manager</strong>, unggah ZIP proyek ke folder di luar
+                <code>public_html</code>, misalnya <code>/home/uXXXXX/laundry</code>, lalu ekstrak.
+                Sertakan <code>vendor</code> dan <code>public/build</code>. Jangan unggah
+                <code>node_modules</code>, <code>.git</code>, atau <code>public/hot</code>.
+            </p>
+        </li>
+
+        <li>
+            <strong>Arahkan document root ke folder public</strong>
+            <p class="small">
+                Di hPanel, buka pengaturan domain/subdomain dan ubah <strong>document root</strong>
+                menjadi <code>/home/uXXXXX/laundry/public</code> bila tersedia. Ini cara paling aman
+                karena <code>.env</code>, <code>vendor</code>, dan kode lain berada di luar web root.
+            </p>
+            <div class="callout warn">
+                <strong>Jika document root tidak bisa diubah</strong>
+                Pindahkan isi folder <code>public</code> ke <code>public_html</code>, lalu sesuaikan
+                path di <code>public_html/index.php</code> agar menunjuk ke folder aplikasi. Contoh:
+                <div class="code" style="margin-top:10px">
+                    <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>&lt;?php
+
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+if (file_exists($maintenance = '/home/uXXXXX/laundry/storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+require '/home/uXXXXX/laundry/vendor/autoload.php';
+
+(require_once '/home/uXXXXX/laundry/bootstrap/app.php')
+    ->handleRequest(Request::capture());</code></pre>
+                </div>
+                Salin juga <code>public/.htaccess</code> ke <code>public_html</code>. Jangan letakkan
+                <code>.env</code> di dalam <code>public_html</code>.
+            </div>
+        </li>
+
+        <li>
+            <strong>Impor database</strong>
+            <p class="small">
+                Buka <strong>phpMyAdmin</strong> dari hPanel, pilih database, lalu tab
+                <strong>Import</strong> dan unggah <code>laundry_prod.sql</code>. Pastikan charset
+                <code>utf8mb4</code>. Jika impor terpotong karena batas unggah, minta penyedia
+                menaikkan batas atau impor per bagian.
+            </p>
+        </li>
+
+        <li>
+            <strong>Buat file .env</strong>
+            <p class="small">
+                Salin <code>.env.example</code> menjadi <code>.env</code> melalui File Manager, lalu isi
+                nilai produksi (sama seperti tabel environment di atas) dengan kredensial database
+                dari hPanel dan <code>APP_KEY</code> hasil langkah 1. Pastikan
+                <code>APP_URL=https://domainanda.com</code> dan <code>APP_DEBUG=false</code>.
+            </p>
+        </li>
+
+        <li>
+            <strong>Atur izin folder</strong>
+            <p class="small">
+                Melalui File Manager, set permission <code>storage</code> dan
+                <code>bootstrap/cache</code> (beserta isinya) menjadi <strong>775</strong>. Jika
+                hosting memakai pemilik file yang sama dengan proses PHP, 755 biasanya cukup untuk
+                file dan folder; yang penting proses PHP dapat menulis cache, session, dan log.
+            </p>
+        </li>
+
+        <li>
+            <strong>Buat symlink storage tanpa SSH</strong>
+            <p class="small">
+                Logo perusahaan disimpan di <code>storage/app/public/logos</code> dan harus dapat
+                diakses lewat <code>public/storage</code>. Karena hPanel tidak menyediakan terminal,
+                unggah berkas sementara <code>public/buat-storage-link.php</code> berikut melalui
+                File Manager:
+            </p>
+            <div class="code">
+                <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>&lt;?php
+$target = dirname(__DIR__).'/storage/app/public';
+$link = __DIR__.'/storage';
+
+if (is_link($link)) {
+    echo 'Symlink sudah ada: '.readlink($link);
+    exit;
+}
+
+if (!is_dir($target)) {
+    mkdir($target, 0775, true);
+}
+
+echo symlink($target, $link) ? 'Symlink berhasil dibuat.' : 'Gagal membuat symlink.';</code></pre>
+            </div>
+            <p class="small">
+                Buka <code>https://domainanda.com/buat-storage-link.php</code> sekali, pastikan
+                tertulis “Symlink berhasil dibuat.”, lalu <strong>hapus berkas tersebut</strong>.
+                Jika hosting memblokir fungsi <code>symlink()</code>, minta penyedia mengaktifkannya
+                atau arahkan dukungan untuk membuat symlink manual dari
+                <code>public/storage</code> ke <code>storage/app/public</code>.
+            </p>
+        </li>
+
+        <li>
+            <strong>Aktifkan HTTPS dan uji</strong>
+            <p class="small">
+                Aktifkan SSL gratis di hPanel dan paksa HTTPS. Buka
+                <code>https://domainanda.com/up</code>, lalu login. Uji setiap menu, pembuatan nota,
+                cetak struk, dan ekspor CSV.
+            </p>
+        </li>
+
+        <li>
+            <strong>Amankan akun demo</strong>
+            <p class="small">
+                Jika memakai database hasil seeder demo, segera ganti password seluruh akun staf,
+                hapus akun/nota demo yang tidak diperlukan, dan jangan biarkan kredensial
+                <code>password</code> aktif di produksi.
+            </p>
+        </li>
+    </ol>
+
+    <div class="callout warn">
+        <strong>Jangan unggah cache config lokal</strong>
+        File di <code>bootstrap/cache/*.php</code> dapat berisi path absolut komputer pengembang.
+        Hapus file cache tersebut sebelum ZIP, atau jangan sertakan folder <code>bootstrap/cache</code>.
+    </div>
+
+    <h3 id="data-produksi">3.5 Pilihan data produksi</h3>
+    <div class="grid grid-2">
+        <div class="card">
+            <h4>A. Produksi bersih (disarankan)</h4>
+            <ul class="small">
+                <li>Migrasi saja + <code>RolePermissionSeeder</code>.</li>
+                <li>Buat satu akun admin melalui Tinker.</li>
+                <li>Tambahkan pelanggan, karyawan, dan master data melalui aplikasi.</li>
+                <li>Tidak ada data transaksi palsu pada laporan.</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h4>B. Demo / pelatihan</h4>
+            <ul class="small">
+                <li><code>php artisan migrate:fresh --seed --force</code>.</li>
+                <li>Menghasilkan 15 pengguna, 10 barang, 5 paket, 4 layanan, dan 68 nota (November 2026).</li>
+                <li>Semua akun memakai password <code>password</code>.</li>
+                <li>Wajib mengganti password sebelum dipakai nyata.</li>
+            </ul>
+        </div>
+    </div>
+    <div class="callout danger">
+        <strong>Perintah <code>migrate:fresh</code> menghapus seluruh tabel</strong>
+        Jangan pernah menjalankannya pada database produksi yang sudah berisi data. Gunakan hanya
+        pada database demo atau persiapan.
+    </div>
+
+    <h3 id="update-backup">3.6 Update aplikasi dan backup</h3>
+    <h4>Update di VPS</h4>
+    <div class="code">
+        <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>cd /var/www/laundry
+git pull
+composer install --no-dev --optimize-autoloader
+npm ci
+npm run build
+rm -f public/hot
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+sudo systemctl reload php8.4-fpm</code></pre>
+    </div>
+
+    <h4>Update di shared hosting</h4>
+    <ol class="small">
+        <li>Backup database dan file sebelum perubahan.</li>
+        <li>Build ulang <code>vendor</code> (jika dependensi berubah) dan <code>public/build</code> di lokal.</li>
+        <li>Unggah hanya file yang berubah; pastikan <code>public/hot</code> tetap tidak ada.</li>
+        <li>Jika ada migrasi baru, jalankan di lokal pada salinan database, ekspor perubahan, lalu terapkan lewat phpMyAdmin.</li>
+        <li>Uji login dan transaksi setelah unggah.</li>
+    </ol>
+
+    <h4>Backup minimum</h4>
+    <ul class="small">
+        <li>Dump database harian: <code>mysqldump</code> atau fitur backup hPanel.</li>
+        <li>File <code>.env</code> (simpan terpisah dan aman; berisi kredensial).</li>
+        <li>Folder <code>storage</code> bila nanti ada unggahan; saat ini utamanya log/cache.</li>
+        <li>Simpan juga salinan <code>public/build</code> agar versi aset sesuai kode.</li>
+    </ul>
+
+    <h4>Rollback</h4>
+    <p class="small">
+        Kembalikan kode ke commit sebelumnya, pulihkan dump database terakhir, lalu build ulang
+        aset. Karena aplikasi belum memiliki migrasi destruktif lanjutan, rollback kode + database
+        biasanya cukup.
+    </p>
+</section>
+
+<section id="troubleshooting">
+    <h2>4. Troubleshooting</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Gejala</th><th>Penyebab umum</th><th>Solusi</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td>Halaman tampil tanpa CSS/JS, console mencari <code>127.0.0.1:5173</code></td>
+                    <td><code>public/hot</code> ikut ter-deploy.</td>
+                    <td>Hapus <code>public/hot</code>, pastikan <code>public/build/manifest.json</code> ada.</td>
+                </tr>
+                <tr>
+                    <td><code>Vite manifest not found</code></td>
+                    <td>Aset belum dibangun atau folder build tidak terunggah.</td>
+                    <td>Jalankan <code>npm run build</code>, unggah seluruh <code>public/build</code>.</td>
+                </tr>
+                <tr>
+                    <td>HTTP 500 setelah unggah</td>
+                    <td>Izin folder, <code>APP_KEY</code> kosong, ekstensi PHP kurang, atau vendor tidak lengkap.</td>
+                    <td>Periksa <code>storage/logs/laravel.log</code>; set izin tulis; isi key; pasang ekstensi; unggah <code>vendor</code>.</td>
+                </tr>
+                <tr>
+                    <td>419 Page Expired saat login</td>
+                    <td>Cookie/session tidak konsisten, domain cookie salah, atau HTTP/HTTPS campur.</td>
+                    <td>Samakan <code>APP_URL</code> dan URL akses; kosongkan <code>SESSION_DOMAIN</code>; hapus cookie lama; pastikan satu domain saja.</td>
+                </tr>
+                <tr>
+                    <td>Login berhasil tetapi kembali ke halaman login</td>
+                    <td>Session tidak tersimpan (driver database tanpa tabel, folder session tidak writable).</td>
+                    <td>Pastikan tabel <code>sessions</code> ada atau gunakan <code>SESSION_DRIVER=file</code>; beri izin tulis <code>storage/framework/sessions</code>.</td>
+                </tr>
+                <tr>
+                    <td>403 pada menu tertentu</td>
+                    <td>Role pengguna tidak memiliki permission.</td>
+                    <td>Periksa role melalui menu Pengguna; pastikan seeder role sudah dijalankan.</td>
+                </tr>
+                <tr>
+                    <td>Akun pelanggan tidak bisa membuka halaman staf</td>
+                    <td>Perilaku yang disengaja: pelanggan hanya memakai portal <code>/akun</code>.</td>
+                    <td>Masuk dengan akun pelanggan untuk melihat nota sendiri; ubah role melalui menu Pengguna bila akun tersebut perlu akses staf.</td>
+                </tr>
+                <tr>
+                    <td><code>SQLSTATE[HY000] [2002] Connection refused</code></td>
+                    <td>Host/port database salah pada shared hosting.</td>
+                    <td>Gunakan host dari hPanel (sering <code>localhost</code>), cek nama DB/user berprefix.</td>
+                </tr>
+                <tr>
+                    <td>Waktu transaksi bergeser</td>
+                    <td><code>APP_TIMEZONE</code> salah atau config ter-cache.</td>
+                    <td>Set <code>Asia/Jakarta</code>; bila ada SSH, jalankan <code>php artisan config:cache</code> ulang.</td>
+                </tr>
+                <tr>
+                    <td>Data demo muncul di produksi</td>
+                    <td>Database dibuat dengan <code>--seed</code>.</td>
+                    <td>Ganti password, hapus data demo melalui UI, atau impor ulang database bersih.</td>
+                </tr>
+                <tr>
+                    <td>Perubahan <code>.env</code> tidak berpengaruh</td>
+                    <td>Konfigurasi masih ter-cache.</td>
+                    <td>Jalankan <code>php artisan config:clear</code> lalu <code>config:cache</code> (butuh SSH), atau hapus file cache config.</td>
+                </tr>
+                <tr>
+                    <td>Logo perusahaan tidak tampil (404 pada <code>/storage/logos/...</code>)</td>
+                    <td>Symlink <code>public/storage</code> belum dibuat; pada shared hosting fungsi <code>symlink</code> diblokir.</td>
+                    <td>Jalankan <code>php artisan storage:link</code> (VPS) atau langkah symlink tanpa SSH; pastikan <code>APP_URL</code> benar.</td>
+                </tr>
+                <tr>
+                    <td>Menu Setup tidak muncul / 403</td>
+                    <td>Permission <code>pengaturan.manage</code> belum ada pada database lama.</td>
+                    <td>Jalankan <code>php artisan db:seed --class=RolePermissionSeeder --force</code>; login ulang sebagai admin.</td>
+                </tr>
+                <tr>
+                    <td>Email lupa password tidak diterima</td>
+                    <td><code>MAIL_MAILER=log</code>, SMTP salah, atau email masuk spam.</td>
+                    <td>Cek <code>storage/logs/laravel.log</code>; isi SMTP dan <code>config:clear</code>; periksa folder spam; tautan memakai host dari <code>APP_URL</code>.</td>
+                </tr>
+                <tr>
+                    <td>Tautan reset “invalid or expired”</td>
+                    <td>Token sudah dipakai, kedaluwarsa, atau email pada URL tidak cocok.</td>
+                    <td>Minta tautan baru dari halaman Lupa Password; token hanya berlaku sekali.</td>
+                </tr>
+                <tr>
+                    <td>Saat print masih ada sidebar/tombol</td>
+                    <td>Build aset lama atau mencetak halaman selain detail nota.</td>
+                    <td>Jalankan <code>npm run build</code> ulang, cetak dari halaman detail invoice dengan tombol <strong>Cetak Invoice</strong>.</td>
+                </tr>
+                <tr>
+                    <td>Port 5173 bentrok saat <code>npm run dev</code></td>
+                    <td>Dev server Vite lain masih berjalan; konfigurasi memakai <code>strictPort</code>.</td>
+                    <td>Hentikan proses lama (<code>netstat -ano | findstr :5173</code> lalu <code>taskkill</code>), atau jalankan satu dev server saja.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section id="lampiran">
+    <h2>5. Lampiran</h2>
+
+    <h3 id="akun-demo">5.1 Akun demo dan cara login</h3>
+
+    <div class="callout info">
+        <strong>Cara login</strong>
+        <p>
+            Buka <code>http://127.0.0.1:8000/login</code> (lokal) atau domain produksi Anda, isi email dan
+            password, lalu klik <strong>Masuk</strong>. Staf (admin/karyawan) diarahkan ke dashboard;
+            pelanggan diarahkan ke portal <code>/akun</code>.
+        </p>
+    </div>
+
+    <p class="small">Semua akun demo memakai password <code>password</code> (huruf kecil semua).</p>
+
+    <h4>Akun staf (dapat login)</h4>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Peran</th><th>Nama</th><th>Email</th><th>Password</th></tr></thead>
+            <tbody>
+                <tr><td><span class="pill admin">Admin</span></td><td>Octavyan Putra Ramadhan</td><td><code>admin@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td><span class="pill karyawan">Karyawan</span></td><td>Vavian Ega Ramadhan</td><td><code>vavian@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td><span class="pill karyawan">Karyawan</span></td><td>Sidiq Kurniawan</td><td><code>sidiq@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td><span class="pill karyawan">Karyawan</span></td><td>Fadly Rizky Maulana</td><td><code>fadly@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td><span class="pill karyawan">Karyawan</span></td><td>Puan Maharani</td><td><code>puan@laundry.test</code></td><td><code>password</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="small">
+        Login sebagai admin untuk menguji seluruh menu (termasuk Pengguna, Karyawan, dan Setup).
+        Login sebagai karyawan untuk menguji pembatasan akses: menu Pengguna, Karyawan, Setup, dan
+        tombol hapus nota tidak muncul.
+    </p>
+
+    <div class="callout info">
+        <strong>Lupa password saat demo</strong>
+        <p>
+            Klik <strong>Lupa password?</strong> di halaman login, masukkan email terdaftar (staf atau
+            pelanggan), lalu kirim.
+            Pada mode pengembangan dengan <code>MAIL_MAILER=log</code>, tautan reset tertulis di
+            <code>storage/logs/laravel.log</code>; buka tautan tersebut untuk mengatur kata sandi baru.
+            Akun demo tetap dapat login dengan password lama sampai reset diselesaikan.
+        </p>
+    </div>
+
+    <h4>Akun pelanggan (portal <code>/akun</code>)</h4>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Nama</th><th>Email</th><th>Password</th></tr></thead>
+            <tbody>
+                <tr><td>Galang Ardiansyah</td><td><code>galang@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td>Megawati</td><td><code>mega@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td>Ayu Lestari</td><td><code>ayu@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td>Budi Santoso</td><td><code>budi@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td>Citra Dewi</td><td><code>citra@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td>Eko Prasetyo</td><td><code>eko@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td>Fitri Handayani</td><td><code>fitri@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td>Hendra Wijaya</td><td><code>hendra@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td>Indah Permata</td><td><code>indah@laundry.test</code></td><td><code>password</code></td></tr>
+                <tr><td>Joko Susilo</td><td><code>joko@laundry.test</code></td><td><code>password</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="small muted">
+        Login dengan akun pelanggan (contoh: <code>ayu@laundry.test</code> / <code>password</code>)
+        membuka portal <code>/akun</code> yang hanya menampilkan nota miliknya, dengan tombol
+        <strong>Unduh PDF</strong> pada setiap nota. Akun pelanggan tidak memiliki akses ke menu staf.
+    </p>
+
+    <div class="callout warn">
+        <strong>Catatan pengujian login</strong>
+        <p>
+            Percobaan login yang gagal dibatasi 5 kali per menit untuk kombinasi email + IP; setelah itu
+            login diblokir sementara (pesan throttle). Kredensial demo hanya untuk lokal — ganti seluruh
+            password sebelum aplikasi dipakai di lingkungan nyata.
+        </p>
+    </div>
+
+    <h3>5.2 Ringkasan data seed</h3>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Data</th><th>Jumlah</th><th>Contoh</th></tr></thead>
+            <tbody>
+                <tr><td>Pengguna</td><td>15</td><td>1 admin, 4 karyawan, 10 pelanggan.</td></tr>
+                <tr><td>Barang satuan</td><td>10</td><td>Selimut, Kemeja, Bed Cover, Jas, Gaun, Sepatu, dan lainnya.</td></tr>
+                <tr><td>Paket kiloan</td><td>5</td><td>SUPER DUPER 5kg, 4/8/24 Jam Selesai, dan lainnya.</td></tr>
+                <tr><td>Jenis layanan</td><td>4</td><td>Reguler, Cepat, Kilat, Super Duper.</td></tr>
+                <tr><td>Nota</td><td>68*</td><td>Campuran kiloan dan satuan; jumlah mengikuti bulan saat seeder dijalankan.</td></tr>
+                <tr><td>Identitas perusahaan</td><td>1</td><td>Nama dari <code>APP_NAME</code>; logo kosong sampai diunggah lewat Setup.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="small muted">*Per November 2026. Seeder idempoten: menjalankan <code>db:seed</code> lagi tidak menggandakan data.</p>
+
+    <h3>5.3 Perintah penting</h3>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Keperluan</th><th>Perintah</th></tr></thead>
+            <tbody>
+                <tr><td>Instalasi lokal</td><td><code>composer install</code>, <code>npm install</code></td></tr>
+                <tr><td>Migrasi + demo</td><td><code>php artisan migrate:fresh --seed</code></td></tr>
+                <tr><td>Hanya role/permission</td><td><code>php artisan db:seed --class=RolePermissionSeeder</code></td></tr>
+                <tr><td>Identitas perusahaan default</td><td><code>php artisan db:seed --class=PengaturanSeeder</code></td></tr>
+                <tr><td>Symlink logo</td><td><code>php artisan storage:link</code></td></tr>
+                <tr><td>Melihat tautan reset (dev)</td><td><code>Get-Content storage/logs/laravel.log -Tail 50</code> (PowerShell) atau <code>tail -n 50 storage/logs/laravel.log</code></td></tr>
+                <tr><td>Menjalankan lokal</td><td><code>php artisan serve --host=127.0.0.1 --port=8000</code> dan <code>npm run dev</code></td></tr>
+                <tr><td>Build produksi</td><td><code>npm run build</code></td></tr>
+                <tr><td>Test backend</td><td><code>php artisan test</code></td></tr>
+                <tr><td>Type check Svelte</td><td><code>npx svelte-check --tsgo --tsconfig ./tsconfig.json</code></td></tr>
+                <tr><td>Cache produksi</td><td><code>php artisan config:cache</code>, <code>route:cache</code>, <code>view:cache</code></td></tr>
+                <tr><td>Bersihkan cache</td><td><code>php artisan optimize:clear</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>5.3.1 Hasil pemeriksaan final (24 November 2026)</h3>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Pemeriksaan</th><th>Hasil</th></tr></thead>
+            <tbody>
+                <tr><td>Test backend</td><td><strong>93 test / 437 assertion lulus</strong>, 14,48 detik.</td></tr>
+                <tr><td>Type check Svelte</td><td><strong>0 error, 0 warning</strong>.</td></tr>
+                <tr><td>Build produksi</td><td>Sukses, <strong>800 modul</strong>; JS 431,59 kB (gzip 116,97 kB), CSS 97,20 kB (gzip 16,59 kB; <code>app.css</code> 67,68 kB + <code>sweetalert2.min.css</code> 29,52 kB).</td></tr>
+                <tr><td>Notifikasi SweetAlert2</td><td>Dialog konfirmasi hapus (fokus awal Batal), toast sukses simpan/hapus di kanan atas, mode gelap, 0 error console — <code>TESTING_REPORT.md</code> §4.2.</td></tr>
+                <tr><td>Footer global</td><td>Bar fixed di dasar layar untuk dashboard/staf (rect tetap saat scroll pada 0/1.101/1.721 px) dan portal pelanggan (rect tetap pada 0/1.603 px, konten tidak tertutup, kontainer <code>max-w-5xl</code>), footer ringkas di login; teks hanya berasal dari konstanta terenkode di <code>lib/footer.ts</code> (pencarian teks footer di bundle = 0 hasil); light/dark, tanpa overflow — <code>TESTING_REPORT.md</code> §4.3.</td></tr>
+                <tr><td>Route aplikasi</td><td><strong>46 route</strong> di luar route vendor.</td></tr>
+                <tr><td>Admin</td><td>Seluruh halaman staf <code>200</code>; <code>/akun</code> dialihkan ke dashboard.</td></tr>
+                <tr><td>Karyawan</td><td>Halaman operasional <code>200</code>; <code>/users</code>, <code>/karyawan</code>, <code>/pengaturan</code> <code>403</code>; <code>/akun</code> dialihkan.</td></tr>
+                <tr><td>Pelanggan</td><td><code>/akun</code> dan nota miliknya <code>200</code>; PDF <code>application/pdf</code> 8.334 byte; nota/PDF pelanggan lain <code>404</code>; halaman staf <code>403</code>.</td></tr>
+                <tr><td>Guest</td><td><code>/</code> dan <code>/akun</code> dialihkan ke login; lupa password <code>200</code>; URL tak dikenal <code>404</code>.</td></tr>
+                <tr><td>Console &amp; log server</td><td>0 error console; 0 error server selama pemeriksaan; input filter berlebih ditolak validasi tanpa 500.</td></tr>
+                <tr><td>Kebersihan repositori</td><td>Cache <code>.svelte-check/</code> dan <code>.phpunit.result.cache</code> dihapus; tidak ada file sumber yatim.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>5.4 Dokumen terkait</h3>
+    <ul class="small">
+        <li><code>docs/SYSTEM_ARCHITECTURE.md</code> — arsitektur final dan keputusan teknis.</li>
+        <li><code>docs/DATABASE_ANALYSIS.md</code> — skema, perbandingan legacy, integritas data.</li>
+        <li><code>docs/FEATURE_INVENTORY.md</code> — status setiap fitur.</li>
+        <li><code>docs/BUSINESS_WORKFLOW.md</code> — alur kerja operasional.</li>
+        <li><code>docs/TESTING_REPORT.md</code> — bukti pengujian.</li>
+        <li><code>docs/DEMO_CREDENTIALS.md</code> — akun dan data demo.</li>
+        <li><code>docs/LEGACY_MIGRATION_REPORT.md</code> — perubahan yang disengaja dari legacy.</li>
+    </ul>
+
+    <p class="small muted" style="margin-top:22px">
+        Dokumen HTML ini bersifat statis dan mandiri: tidak membutuhkan server, tidak memuat aset
+        eksternal, dan dapat dibuka langsung di browser atau dicetak ke PDF. Isinya disusun dari
+        kode proyek per 24 November 2026.
+    </p>
+</section>
+
+<footer class="footer">
+    Laundry Management System — dokumentasi Laravel 13 + Inertia + Svelte 5.
+</footer>
+
+</div>
+</main>
+
+<script>
+    function copyCode(button) {
+        const pre = button.parentElement.querySelector('pre');
+        if (!pre) return;
+
+        const text = pre.innerText;
+        const done = () => {
+            button.textContent = 'Tersalin';
+            setTimeout(() => { button.textContent = 'Salin'; }, 1600);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(() => {});
+        } else {
+            const area = document.createElement('textarea');
+            area.value = text;
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand('copy');
+            document.body.removeChild(area);
+            done();
+        }
+    }
+
+    (function () {
+        const toggle = document.getElementById('tocToggle');
+        const toc = document.getElementById('toc');
+
+        toggle.addEventListener('click', function () {
+            const open = toc.classList.toggle('open');
+            toggle.setAttribute('aria-expanded', String(open));
+        });
+
+        toc.addEventListener('click', function (event) {
+            if (event.target.closest('a')) {
+                toc.classList.remove('open');
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        if ('IntersectionObserver' in window) {
+            const links = Array.from(toc.querySelectorAll('a'));
+            const byId = new Map(links.map((link) => [link.getAttribute('href').slice(1), link]));
+
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (!entry.isIntersecting) return;
+                    links.forEach((link) => link.classList.remove('active'));
+                    const link = byId.get(entry.target.id);
+                    if (link) link.classList.add('active');
+                });
+            }, { rootMargin: '-15% 0px -75% 0px', threshold: 0 });
+
+            document.querySelectorAll('main section[id], h3[id]').forEach((section) => observer.observe(section));
+        }
+    })();
+</script>
+</body>
+</html>
