@@ -1,14 +1,21 @@
+# ==========================================
 # Environment & Credentials
+# ==========================================
 .env
 .env.*
 !.env.example
 auth.json
 
+# ==========================================
 # Laravel
-/vendor
-/public/build
+# ==========================================
+/vendor/
+/public/build/
 /public/hot
 /public/storage
+
+/bootstrap/cache/*.php
+
 /storage/*.key
 /storage/pail
 /storage/logs/*
@@ -16,38 +23,53 @@ auth.json
 /storage/framework/sessions/*
 /storage/framework/testing/*
 /storage/framework/views/*
-/bootstrap/cache/*.php
 
+# ==========================================
 # Node.js & Svelte
-/node_modules
+# ==========================================
+/node_modules/
 /.svelte-check
 npm-debug.log*
 yarn-debug.log*
+yarn-error.log
 
+# ==========================================
 # Logs
+# ==========================================
 *.log
 
+# ==========================================
 # IDE & Editors
-/.idea
-/.nova
-/.vscode
-/.zed
+# ==========================================
+/.idea/
+/.nova/
+/.vscode/
+/.zed/
 /.cursor/
 /.codex
 /.phpactor.json
 _ide_helper.php
 
+# ==========================================
 # PHPUnit
+# ==========================================
 /.phpunit.cache
 .phpunit.result.cache
 
-# OS files
+# ==========================================
+# Operating System
+# ==========================================
 .DS_Store
 Thumbs.db
 
+# ==========================================
 # Laravel Homestead
+# ==========================================
 Homestead.json
 Homestead.yaml
+/.vagrant
 
-# Development files
+# ==========================================
+# Development Files
+# ==========================================
 /public/fonts-manifest.dev.json
