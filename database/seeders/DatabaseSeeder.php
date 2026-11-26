@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             BarangSeeder::class,
             KiloanSeeder::class,
             JenisLayananSeeder::class,
+            LoyaltyProgramSeeder::class,
+            PromotionSeeder::class,
             NotaSeeder::class,
         ]);
     }

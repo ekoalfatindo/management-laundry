@@ -74,7 +74,9 @@ class KaryawanController extends Controller
 
         $this->users->delete($user);
 
-        return back()->with('success', 'Karyawan berhasil dihapus.');
+        return redirect()
+            ->route('karyawan.index')
+            ->with('success', 'Karyawan berhasil dihapus.');
     }
 
     private function ensureRole(User $user): void

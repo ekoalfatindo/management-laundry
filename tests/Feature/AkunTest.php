@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\JenisNota;
+use App\Enums\StatusNota;
 use App\Enums\UserRole;
 use App\Models\Kiloan;
 use App\Models\Nota;
@@ -51,6 +52,21 @@ class AkunTest extends TestCase
                 ->where('notas.meta.total', 2)
                 ->where('ringkasan.total_nota', 2)
                 ->where('ringkasan.total_biaya', 90000));
+    }
+
+    public function test_ringkasan_excludes_cancelled_notas_from_total_cost(): void
+    {
+        $this->notaFor($this->pelanggan, '#OWN05', 40000, now());
+        $cancelled = $this->notaFor($this->pelanggan, '#OWN06', 75000, now());
+        $cancelled->update(['status' => StatusNota::Dibatalkan]);
+
+        $this->actingAs($this->pelanggan)
+            ->get('/akun')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('notas.data', 2)
+                ->where('ringkasan.total_nota', 2)
+                ->where('ringkasan.total_biaya', 40000));
     }
 
     public function test_pelanggan_can_open_own_nota_detail(): void

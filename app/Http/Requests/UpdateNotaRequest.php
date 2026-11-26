@@ -3,11 +3,15 @@
 namespace App\Http\Requests;
 
 use App\Enums\JenisNota;
+use App\Http\Requests\Concerns\ValidatesNotaReward;
 use App\Models\Nota;
+use App\Rules\PelangganTerdaftar;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateNotaRequest extends FormRequest
 {
+    use ValidatesNotaReward;
+
     public function authorize(): bool
     {
         $nota = $this->route('nota');
@@ -26,7 +30,7 @@ class UpdateNotaRequest extends FormRequest
 
         return [
             'nama_pelanggan' => ['required', 'string', 'max:255'],
-            'pelanggan_id' => ['nullable', 'integer', 'exists:users,id'],
+            'pelanggan_id' => ['nullable', 'integer', 'exists:users,id', new PelangganTerdaftar],
             'waktu' => ['required', 'date'],
             'diskon' => ['required', 'integer', 'between:0,100'],
             'kiloan_id' => $isKiloan
@@ -43,6 +47,7 @@ class UpdateNotaRequest extends FormRequest
                 : ['required', 'array', 'min:1'],
             'barangs.*.barang_id' => ['required_with:barangs', 'integer', 'exists:barangs,id'],
             'barangs.*.jumlah_barang' => ['required_with:barangs', 'integer', 'min:1', 'max:100000'],
+            ...$this->rewardRules(),
         ];
     }
 }

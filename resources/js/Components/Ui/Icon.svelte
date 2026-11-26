@@ -19,6 +19,7 @@
         | 'search'
         | 'chevron-left'
         | 'chevron-right'
+        | 'chevron-down'
         | 'sun'
         | 'moon'
         | 'download'
@@ -32,7 +33,9 @@
         | 'wallet'
         | 'trend'
         | 'clock'
-        | 'shirt';
+        | 'shirt'
+        | 'gift'
+        | 'tag';
 </script>
 
 <script lang="ts">
@@ -114,6 +117,8 @@
         <path d="m15 18-6-6 6-6" />
     {:else if name === 'chevron-right'}
         <path d="m9 18 6-6-6-6" />
+    {:else if name === 'chevron-down'}
+        <path d="m6 9 6 6 6-6" />
     {:else if name === 'sun'}
         <circle cx="12" cy="12" r="4" />
         <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
@@ -158,5 +163,12 @@
         <path d="M12 7v5l3 2" />
     {:else if name === 'shirt'}
         <path d="M9 3 4 5.5 2 10l3.5 1.5L6 21h12l.5-9.5L22 10l-2-4.5L15 3a3 3 0 0 1-6 0Z" />
+    {:else if name === 'gift'}
+        <rect x="3" y="8" width="18" height="13" rx="1.5" />
+        <path d="M3 12h18M12 8v13" />
+        <path d="M7.5 8a2.5 2.5 0 1 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 1 1 0 5" />
+    {:else if name === 'tag'}
+        <path d="M20.6 13.6 13 21.2a2 2 0 0 1-2.8 0l-7.4-7.4A2 2 0 0 1 2.2 12V4a2 2 0 0 1 2-2h8a2 2 0 0 1 1.4.6l7 7a2 2 0 0 1 0 2.8Z" />
+        <circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none" />
     {/if}
 </svg>

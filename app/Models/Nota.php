@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\JenisNota;
+use App\Enums\StatusNota;
+use App\Enums\StatusPembayaran;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,11 +24,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'waktu',
     'total_harga',
     'diskon',
+    'diskon_nominal',
+    'reward_label',
+    'customer_reward_id',
     'jumlah',
+    'status',
+    'status_pembayaran',
+    'dibatalkan_at',
 ])]
 class Nota extends Model
 {
     use HasFactory;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => StatusNota::Diproses->value,
+        'status_pembayaran' => StatusPembayaran::BelumLunas->value,
+        'diskon_nominal' => 0,
+    ];
 
     /**
      * @return array<string, string>
@@ -41,8 +58,32 @@ class Nota extends Model
             'waktu' => 'datetime',
             'total_harga' => 'integer',
             'diskon' => 'integer',
+            'diskon_nominal' => 'integer',
             'jumlah' => 'integer',
+            'status' => StatusNota::class,
+            'status_pembayaran' => StatusPembayaran::class,
+            'dibatalkan_at' => 'datetime',
         ];
+    }
+
+    public function isSelesai(): bool
+    {
+        return $this->status === StatusNota::Selesai;
+    }
+
+    public function isDibatalkan(): bool
+    {
+        return $this->status === StatusNota::Dibatalkan;
+    }
+
+    public function isLunas(): bool
+    {
+        return $this->status_pembayaran === StatusPembayaran::Lunas;
+    }
+
+    public function reward(): BelongsTo
+    {
+        return $this->belongsTo(CustomerReward::class, 'customer_reward_id');
     }
 
     public function barangs(): HasMany

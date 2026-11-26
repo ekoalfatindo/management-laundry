@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StatusNota;
 use App\Http\Resources\NotaResource;
 use App\Models\Nota;
 use App\Models\Pengaturan;
@@ -21,7 +22,9 @@ class AkunController extends Controller
 
         $ringkasan = [
             'total_nota' => (clone $query)->count(),
-            'total_biaya' => (int) (clone $query)->sum('jumlah'),
+            'total_biaya' => (int) (clone $query)
+                ->where('status', '!=', StatusNota::Dibatalkan->value)
+                ->sum('jumlah'),
         ];
 
         $notas = $query

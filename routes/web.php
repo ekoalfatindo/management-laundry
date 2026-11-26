@@ -9,9 +9,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JenisLayananController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\KiloanController;
+use App\Http\Controllers\LoyaltyProgramController;
 use App\Http\Controllers\NotaController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -63,9 +65,22 @@ Route::middleware('auth')->group(function (): void {
 
     Route::middleware('permission:pelanggan.manage')->group(function (): void {
         Route::get('pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
+        Route::get('pelanggan/{user}', [PelangganController::class, 'show'])->name('pelanggan.show');
         Route::post('pelanggan', [PelangganController::class, 'store'])->name('pelanggan.store');
         Route::put('pelanggan/{user}', [PelangganController::class, 'update'])->name('pelanggan.update');
         Route::delete('pelanggan/{user}', [PelangganController::class, 'destroy'])->name('pelanggan.destroy');
+    });
+
+    Route::middleware('permission:loyalitas.manage')->group(function (): void {
+        Route::get('loyalitas', [LoyaltyProgramController::class, 'edit'])->name('loyalitas.edit');
+        Route::put('loyalitas', [LoyaltyProgramController::class, 'update'])->name('loyalitas.update');
+    });
+
+    Route::middleware('permission:promosi.manage')->group(function (): void {
+        Route::get('promosi', [PromotionController::class, 'index'])->name('promosi.index');
+        Route::post('promosi', [PromotionController::class, 'store'])->name('promosi.store');
+        Route::put('promosi/{promotion}', [PromotionController::class, 'update'])->name('promosi.update');
+        Route::delete('promosi/{promotion}', [PromotionController::class, 'destroy'])->name('promosi.destroy');
     });
 
     Route::middleware('permission:katalog.view')->group(function (): void {
@@ -106,6 +121,15 @@ Route::middleware('auth')->group(function (): void {
     Route::get('nota/{nota}', [NotaController::class, 'show'])
         ->middleware('permission:nota.view')
         ->name('nota.show');
+    Route::post('nota/{nota}/selesai', [NotaController::class, 'complete'])
+        ->middleware('permission:nota.update')
+        ->name('nota.complete');
+    Route::post('nota/{nota}/batal', [NotaController::class, 'cancel'])
+        ->middleware('permission:nota.update')
+        ->name('nota.cancel');
+    Route::patch('nota/{nota}/pembayaran', [NotaController::class, 'setPembayaran'])
+        ->middleware('permission:nota.update')
+        ->name('nota.pembayaran');
     Route::get('nota/{nota}/edit', [NotaController::class, 'edit'])
         ->middleware('permission:nota.update')
         ->name('nota.edit');

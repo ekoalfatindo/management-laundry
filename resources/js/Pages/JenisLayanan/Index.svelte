@@ -28,6 +28,11 @@
     let search = $state(untrack(() => filters.search));
     let perPage = $state(untrack(() => filters.per_page));
 
+    $effect(() => {
+        search = filters.search;
+        perPage = filters.per_page;
+    });
+
     let modalOpen = $state(false);
     let editing = $state<JenisLayananRecord | null>(null);
 
@@ -224,6 +229,7 @@
                         id="jenis-harga"
                         type="number"
                         min="0"
+                        max="1000000000"
                         step="1"
                         class="{inputClass} pl-10"
                         bind:value={form.harga}

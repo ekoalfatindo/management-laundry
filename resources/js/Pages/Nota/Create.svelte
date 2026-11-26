@@ -12,6 +12,7 @@
         kiloans,
         jenisLayanans,
         pelanggans,
+        hadiahs,
         defaultWaktu,
         defaultJenis,
     }: {
@@ -19,6 +20,7 @@
         kiloans: NotaFormOptions['kiloans'];
         jenisLayanans: NotaFormOptions['jenisLayanans'];
         pelanggans: NotaFormOptions['pelanggans'];
+        hadiahs: NotaFormOptions['hadiahs'];
         defaultWaktu: string;
         defaultJenis: NotaKind;
     } = $props();
@@ -35,7 +37,7 @@
     <NotaForm
         mode="create"
         jenis={defaultJenis}
-        options={{ barangs, kiloans, jenisLayanans, pelanggans }}
+        options={{ barangs, kiloans, jenisLayanans, pelanggans, hadiahs }}
         {defaultWaktu}
     />
 </AppLayout>

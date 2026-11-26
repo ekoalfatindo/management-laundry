@@ -57,6 +57,22 @@ class UserManagementTest extends TestCase
         $this->assertTrue(Hash::check('password', $target->password));
     }
 
+    public function test_last_admin_cannot_be_demoted(): void
+    {
+        $this->actingAs($this->admin)
+            ->from('/users')
+            ->put("/users/{$this->admin->id}", $this->userPayload([
+                'email' => $this->admin->email,
+                'password' => '',
+                'password_confirmation' => '',
+                'role' => UserRole::Karyawan->value,
+            ]))
+            ->assertRedirect('/users')
+            ->assertSessionHas('error', 'Admin terakhir tidak dapat diubah perannya.');
+
+        $this->assertTrue($this->admin->fresh()->hasRole(UserRole::Admin->value));
+    }
+
     public function test_duplicate_email_is_rejected(): void
     {
         $existing = $this->userWithRole(UserRole::Karyawan);
@@ -85,6 +101,32 @@ class UserManagementTest extends TestCase
             ->assertSessionHas('error', 'Anda tidak dapat menghapus akun sendiri.');
 
         $this->assertDatabaseHas('users', ['id' => $this->admin->id]);
+    }
+
+    public function test_deleting_users_returns_to_unfiltered_lists(): void
+    {
+        $karyawan = $this->userWithRole(UserRole::Karyawan);
+        $pelanggan = $this->userWithRole(UserRole::Pelanggan);
+        $pengguna = $this->userWithRole(UserRole::Karyawan);
+
+        $this->actingAs($this->admin)
+            ->from('/karyawan?search=Karyawan&page=2')
+            ->delete("/karyawan/{$karyawan->id}")
+            ->assertRedirect('/karyawan');
+
+        $this->actingAs($this->admin)
+            ->from('/pelanggan?search=Pelanggan&kategori=Member&page=2')
+            ->delete("/pelanggan/{$pelanggan->id}")
+            ->assertRedirect('/pelanggan');
+
+        $this->actingAs($this->admin)
+            ->from('/users?search=Karyawan&role=karyawan&page=2')
+            ->delete("/users/{$pengguna->id}")
+            ->assertRedirect('/users');
+
+        $this->assertDatabaseMissing('users', ['id' => $karyawan->id]);
+        $this->assertDatabaseMissing('users', ['id' => $pelanggan->id]);
+        $this->assertDatabaseMissing('users', ['id' => $pengguna->id]);
     }
 
     public function test_karyawan_can_manage_customers_but_not_non_customers(): void

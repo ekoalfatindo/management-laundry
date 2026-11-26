@@ -30,6 +30,12 @@
     let role = $state(untrack(() => filters.role));
     let perPage = $state(untrack(() => filters.per_page));
 
+    $effect(() => {
+        search = filters.search;
+        role = filters.role;
+        perPage = filters.per_page;
+    });
+
     let modalOpen = $state(false);
     let editing = $state<UserRecord | null>(null);
 

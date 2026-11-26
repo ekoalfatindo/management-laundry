@@ -67,6 +67,8 @@ class JenisLayananController extends Controller
 
         $jenisLayanan->delete();
 
-        return back()->with('success', 'Jenis layanan berhasil dihapus.');
+        return redirect()
+            ->route('jenis-layanan.index')
+            ->with('success', 'Jenis layanan berhasil dihapus.');
     }
 }

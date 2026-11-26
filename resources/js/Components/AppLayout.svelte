@@ -74,6 +74,8 @@
                 items: [
                     { href: '/karyawan', label: 'Karyawan', icon: 'staff' as IconName, show: can('karyawan.manage') },
                     { href: '/pelanggan', label: 'Pelanggan', icon: 'customer' as IconName, show: can('pelanggan.manage') },
+                    { href: '/loyalitas', label: 'Loyalitas', icon: 'gift' as IconName, show: can('loyalitas.manage') },
+                    { href: '/promosi', label: 'Promosi', icon: 'tag' as IconName, show: can('promosi.manage') },
                     { href: '/users', label: 'Pengguna', icon: 'users' as IconName, show: can('users.manage') },
                     { href: '/pengaturan', label: 'Setup', icon: 'settings' as IconName, show: can('pengaturan.manage') },
                 ],

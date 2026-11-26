@@ -267,12 +267,13 @@
             <tr>
                 <td>
                     <div class="brand">{{ $company->nama_perusahaan }}</div>
-                    <div class="brand-tag">Invoice Laundry</div>
+                    <div class="brand-tag">Invoice</div>
                 </td>
                 <td>
                     <div class="doc-label">Nomor Invoice</div>
                     <div class="doc-number">{{ $nota->no_nota }}</div>
                     <div class="doc-date">{{ $nota->waktu?->format('d/m/Y H:i') }}</div>
+                    <div class="doc-date">Status: {{ $nota->status->value }} &middot; {{ $nota->status_pembayaran->value }}</div>
                 </td>
             </tr>
         </table>
@@ -285,6 +286,9 @@
                     <div class="info-label">Ditagihkan kepada</div>
                     <div class="info-value">{{ $nota->nama_pelanggan }}</div>
                     <div class="info-sub">{{ $nota->pelanggan?->email ?? 'Pelanggan umum' }}</div>
+                    @if ($nota->pelanggan?->kategori_pelanggan)
+                        <div class="info-sub">Kategori: {{ $nota->pelanggan->kategori_pelanggan->value }}</div>
+                    @endif
                 </div>
             </td>
             <td>
@@ -371,8 +375,12 @@
                         <td class="value">Rp {{ number_format((int) $subtotal, 0, ',', '.') }}</td>
                     </tr>
                     <tr>
-                        <td class="label">Diskon ({{ $nota->diskon }}%)</td>
+                        <td class="label">{{ $nota->reward_label ? 'Hadiah ('.$nota->reward_label.')' : 'Diskon ('.$nota->diskon.'%)' }}</td>
                         <td class="value">- Rp {{ number_format((int) $potongan, 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Pembayaran</td>
+                        <td class="value">{{ $nota->status_pembayaran->value }}</td>
                     </tr>
                     <tr class="grand">
                         <td class="label">Total</td>

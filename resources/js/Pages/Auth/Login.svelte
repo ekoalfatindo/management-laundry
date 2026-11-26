@@ -1,17 +1,17 @@
 <script lang="ts">
-    import { Link, useForm, usePage } from '@inertiajs/svelte';
-    import AuthShell from '../../Components/Auth/AuthShell.svelte';
-    import Icon from '../../Components/Ui/Icon.svelte';
-    import Button from '../../Components/Ui/Button.svelte';
-    import { authInputClass, errorClass, labelClass } from '../../lib/ui';
-    import type { SharedProps } from '../../types';
+    import { Link, useForm, usePage } from "@inertiajs/svelte";
+    import AuthShell from "../../Components/Auth/AuthShell.svelte";
+    import Icon from "../../Components/Ui/Icon.svelte";
+    import Button from "../../Components/Ui/Button.svelte";
+    import { authInputClass, errorClass, labelClass } from "../../lib/ui";
+    import type { SharedProps } from "../../types";
 
     const page = usePage<SharedProps>();
-    let status = $derived(page.props.flash?.status ?? '');
+    let status = $derived(page.props.flash?.status ?? "");
 
     const form = useForm({
-        email: '',
-        password: '',
+        email: "",
+        password: "",
         remember: false,
     });
 
@@ -20,13 +20,13 @@
     function submit(event: SubmitEvent): void {
         event.preventDefault();
 
-        form.post('/login', {
-            onFinish: () => form.reset('password'),
+        form.post("/login", {
+            onFinish: () => form.reset("password"),
         });
     }
 </script>
 
-<AuthShell title="Masuk ke akun" subtitle="Kelola operasional laundry atau lihat nota atas nama Anda.">
+<AuthShell title="Masuk ke akun" subtitle="Silahkan Login Dahulu.">
     {#if status}
         <div
             class="mb-5 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"
@@ -56,7 +56,7 @@
 
         <div>
             <div class="flex items-center justify-between gap-3">
-                <label class="{labelClass} mb-0" for="password">Kata sandi</label>
+                <label class="{labelClass} mb-0" for="password">Password</label>
                 <Link
                     href="/forgot-password"
                     class="text-xs font-semibold text-orange-700 transition hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300"
@@ -67,7 +67,7 @@
             <div class="relative mt-1.5">
                 <input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     class="{authInputClass} pr-11"
                     placeholder="••••••••"
                     autocomplete="current-password"
@@ -77,11 +77,16 @@
                 <button
                     type="button"
                     class="absolute inset-y-0 right-0 flex items-center rounded-r-xl px-3 text-slate-400 transition hover:text-orange-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:text-orange-100/40 dark:hover:text-orange-300"
-                    aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                    aria-label={showPassword
+                        ? "Sembunyikan kata sandi"
+                        : "Tampilkan kata sandi"}
                     aria-pressed={showPassword}
                     onclick={() => (showPassword = !showPassword)}
                 >
-                    <Icon name={showPassword ? 'eye-off' : 'eye'} class="size-4" />
+                    <Icon
+                        name={showPassword ? "eye-off" : "eye"}
+                        class="size-4"
+                    />
                 </button>
             </div>
             {#if form.errors.password}
@@ -89,7 +94,9 @@
             {/if}
         </div>
 
-        <label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300">
+        <label
+            class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300"
+        >
             <input
                 type="checkbox"
                 class="size-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 dark:border-orange-100/20 dark:bg-[#1f160f]"
@@ -98,8 +105,13 @@
             Ingat saya
         </label>
 
-        <Button type="submit" variant="brand" class="w-full" disabled={form.processing}>
-            {form.processing ? 'Memproses…' : 'Masuk'}
+        <Button
+            type="submit"
+            variant="brand"
+            class="w-full"
+            disabled={form.processing}
+        >
+            {form.processing ? "Memproses…" : "Masuk"}
         </Button>
     </form>
 </AuthShell>

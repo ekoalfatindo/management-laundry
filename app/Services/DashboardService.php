@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\StatusNota;
 use App\Models\Kiloan;
 use App\Models\Nota;
 use App\Models\User;
@@ -15,9 +16,10 @@ class DashboardService
     public function summary(): array
     {
         $tahun = (int) now()->year;
+        $aktif = fn ($query) => $query->where('status', '!=', StatusNota::Dibatalkan->value);
 
         /** @var array<int, int> $perBulan */
-        $perBulan = Nota::query()
+        $perBulan = $aktif(Nota::query())
             ->whereYear('waktu', $tahun)
             ->selectRaw('MONTH(waktu) as bulan, SUM(jumlah) as total')
             ->groupBy('bulan')
@@ -29,8 +31,8 @@ class DashboardService
             ->all();
 
         return [
-            'totalPendapatan' => (int) Nota::query()->sum('jumlah'),
-            'totalPenjualan' => Nota::query()->count(),
+            'totalPendapatan' => (int) $aktif(Nota::query())->sum('jumlah'),
+            'totalPenjualan' => $aktif(Nota::query())->count(),
             'totalUsers' => User::query()->count(),
             'totalPaket' => Kiloan::query()->count(),
             'tahun' => $tahun,

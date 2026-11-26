@@ -17,10 +17,22 @@
         notas,
         filters,
         jenisOptions,
+        statusOptions,
+        statusPembayaranOptions,
     }: {
         notas: Paginated<NotaRecord>;
-        filters: { search: string; jenis: string; dari: string; sampai: string; per_page: number };
+        filters: {
+            search: string;
+            jenis: string;
+            status: string;
+            status_pembayaran: string;
+            dari: string;
+            sampai: string;
+            per_page: number;
+        };
         jenisOptions: { value: string; label: string }[];
+        statusOptions: { value: string; label: string }[];
+        statusPembayaranOptions: { value: string; label: string }[];
     } = $props();
 
     const page = usePage<SharedProps>();
@@ -30,9 +42,21 @@
 
     let search = $state(untrack(() => filters.search));
     let jenis = $state(untrack(() => filters.jenis));
+    let status = $state(untrack(() => filters.status));
+    let statusPembayaran = $state(untrack(() => filters.status_pembayaran));
     let dari = $state(untrack(() => filters.dari));
     let sampai = $state(untrack(() => filters.sampai));
     let perPage = $state(untrack(() => filters.per_page));
+
+    $effect(() => {
+        search = filters.search;
+        jenis = filters.jenis;
+        status = filters.status;
+        statusPembayaran = filters.status_pembayaran;
+        dari = filters.dari;
+        sampai = filters.sampai;
+        perPage = filters.per_page;
+    });
 
     let exportUrl = $derived(
         (() => {
@@ -40,6 +64,8 @@
 
             if (search) params.set('search', search);
             if (jenis) params.set('jenis', jenis);
+            if (status) params.set('status', status);
+            if (statusPembayaran) params.set('status_pembayaran', statusPembayaran);
             if (dari) params.set('dari', dari);
             if (sampai) params.set('sampai', sampai);
 
@@ -54,6 +80,8 @@
 
         if (search) params.search = search;
         if (jenis) params.jenis = jenis;
+        if (status) params.status = status;
+        if (statusPembayaran) params.status_pembayaran = statusPembayaran;
         if (dari) params.dari = dari;
         if (sampai) params.sampai = sampai;
 
@@ -73,6 +101,8 @@
     function resetFilters(): void {
         search = '';
         jenis = '';
+        status = '';
+        statusPembayaran = '';
         dari = '';
         sampai = '';
         perPage = 10;
@@ -95,14 +125,26 @@
             : (nota.jenis_layanan?.jenis_cuci ?? 'Layanan dihapus');
     }
 
+    function statusTone(value: NotaRecord['status']): 'teal' | 'rose' | 'amber' {
+        if (value === 'Selesai') {
+            return 'teal';
+        }
+
+        return value === 'Dibatalkan' ? 'rose' : 'amber';
+    }
+
+    function pembayaranTone(value: NotaRecord['status_pembayaran']): 'teal' | 'amber' {
+        return value === 'Lunas' ? 'teal' : 'amber';
+    }
+
 </script>
 
 <AppLayout title="Nota Transaksi">
     <PageHeader title="Nota Transaksi" description="Riwayat nota kiloan dan barang satuan.">
         {#if can('nota.export')}
-            <a href={exportUrl} class={buttonClass('secondary')}>
+            <a href={exportUrl} class={buttonClass('secondary')} title="Unduh laporan Excel (.xlsx)">
                 <Icon name="download" class="size-4" />
-                Ekspor CSV
+                Ekspor Excel
             </a>
         {/if}
 
@@ -137,17 +179,31 @@
                     {/each}
                 </select>
 
-                <div class="xl:col-span-2">
-                    <input type="date" class={inputClass} aria-label="Tanggal mulai" bind:value={dari} />
-                </div>
+                <select class="{inputClass} xl:col-span-2" aria-label="Filter status nota" bind:value={status}>
+                    <option value="">Semua status</option>
+                    {#each statusOptions as option}
+                        <option value={option.value}>{option.label}</option>
+                    {/each}
+                </select>
 
-                <div class="xl:col-span-2">
-                    <input type="date" class={inputClass} aria-label="Tanggal akhir" bind:value={sampai} />
-                </div>
+                <select class="{inputClass} xl:col-span-2" aria-label="Filter status pembayaran" bind:value={statusPembayaran}>
+                    <option value="">Semua pembayaran</option>
+                    {#each statusPembayaranOptions as option}
+                        <option value={option.value}>{option.label}</option>
+                    {/each}
+                </select>
 
                 <div class="flex gap-2 xl:col-span-2">
                     <Button type="submit">Terapkan</Button>
                     <Button variant="ghost" onclick={resetFilters}>Reset</Button>
+                </div>
+
+                <div class="xl:col-span-3">
+                    <input type="date" class={inputClass} aria-label="Tanggal mulai" bind:value={dari} />
+                </div>
+
+                <div class="xl:col-span-3">
+                    <input type="date" class={inputClass} aria-label="Tanggal akhir" bind:value={sampai} />
                 </div>
             </div>
 
@@ -181,6 +237,8 @@
                         <tr>
                             <th class={thClass}>No Nota</th>
                             <th class={thClass}>Jenis</th>
+                            <th class={thClass}>Status</th>
+                            <th class="{thClass} hidden sm:table-cell">Pembayaran</th>
                             <th class={thClass}>Pelanggan</th>
                             <th class="{thClass} hidden xl:table-cell">Layanan</th>
                             <th class="{thClass} hidden lg:table-cell">Waktu</th>
@@ -204,6 +262,10 @@
                                 <td class={tdClass}>
                                     <Badge tone={nota.jenis === 'Paket Kiloan' ? 'teal' : 'indigo'}>{nota.jenis}</Badge>
                                 </td>
+                                <td class={tdClass}><Badge tone={statusTone(nota.status)}>{nota.status}</Badge></td>
+                                <td class="{tdClass} hidden sm:table-cell">
+                                    <Badge tone={pembayaranTone(nota.status_pembayaran)}>{nota.status_pembayaran}</Badge>
+                                </td>
                                 <td class="{tdClass} max-w-[12rem] truncate">{nota.nama_pelanggan}</td>
                                 <td class="{tdClass} hidden max-w-[10rem] truncate text-slate-500 xl:table-cell dark:text-slate-400">
                                     {layananLabel(nota)}
@@ -212,7 +274,13 @@
                                     {dateTime(nota.waktu)}
                                 </td>
                                 <td class="{tdClass} hidden text-right md:table-cell">{rupiah(nota.total_harga)}</td>
-                                <td class="{tdClass} hidden text-center md:table-cell">{nota.diskon}%</td>
+                                <td class="{tdClass} hidden text-center md:table-cell">
+                                    {#if nota.reward_label}
+                                        <span class="text-xs font-semibold text-teal-700 dark:text-teal-300">Hadiah</span>
+                                    {:else}
+                                        {nota.diskon}%
+                                    {/if}
+                                </td>
                                 <td class="{tdClass} text-right font-semibold">{rupiah(nota.jumlah)}</td>
                                 <td class={tdClass}>
                                     <div class="flex items-center justify-end gap-1">
@@ -224,7 +292,7 @@
                                             <Icon name="eye" class="size-4" />
                                         </Link>
 
-                                        {#if can('nota.update')}
+                                        {#if can('nota.update') && !nota.is_dibatalkan}
                                             <Link
                                                 href={`/nota/${nota.id}/edit`}
                                                 class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-orange-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-orange-300"

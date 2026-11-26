@@ -264,6 +264,16 @@
     background-color: #be123c;
 }
 
+.swal2-popup.swal-laundry-popup .swal-laundry-btn-confirm {
+    background-color: #ea580c;
+    color: #ffffff;
+    box-shadow: 0 8px 18px -10px rgb(234 88 12 / 0.9);
+}
+
+.swal2-popup.swal-laundry-popup .swal-laundry-btn-confirm:hover {
+    background-color: #c2410c;
+}
+
 .swal2-popup.swal-laundry-popup .swal-laundry-btn-cancel {
     border: 1px solid #cbd5e1;
     background-color: #ffffff;
@@ -436,6 +446,18 @@
     .invoice-print * {
         color: #111 !important;
         background-color: transparent !important;
+    }
+
+    .thermal-print {
+        page-break-inside: avoid;
+    }
+
+    .thermal-print * {
+        break-inside: avoid;
+    }
+
+    .thermal-print img {
+        filter: grayscale(100%);
     }
 
     @page {

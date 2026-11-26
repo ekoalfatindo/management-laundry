@@ -48,6 +48,38 @@ class MasterDataTest extends TestCase
         $this->assertDatabaseMissing('barangs', ['id' => $barang->id]);
     }
 
+    public function test_deleting_barang_returns_to_unfiltered_list(): void
+    {
+        $barang = Barang::query()->create(['name' => 'Topi', 'harga' => 5000]);
+        Barang::query()->create(['name' => 'Kaos', 'harga' => 7000]);
+
+        $this->actingAs($this->admin)
+            ->from('/barang?search=Topi&page=2')
+            ->delete("/barang/{$barang->id}")
+            ->assertRedirect('/barang');
+
+        $this->assertDatabaseMissing('barangs', ['id' => $barang->id]);
+    }
+
+    public function test_deleting_kiloan_and_jenis_layanan_return_to_unfiltered_lists(): void
+    {
+        $kiloan = Kiloan::query()->create(['paket' => 'Satuan', 'harga' => 10000]);
+        $layanan = JenisLayanan::query()->create(['jenis_cuci' => 'Setrika Saja', 'waktu' => '1 Hari', 'harga' => 8000]);
+
+        $this->actingAs($this->admin)
+            ->from('/kiloan?search=Satuan&page=2')
+            ->delete("/kiloan/{$kiloan->id}")
+            ->assertRedirect('/kiloan');
+
+        $this->actingAs($this->admin)
+            ->from('/jenis-layanan?search=Setrika&page=2')
+            ->delete("/jenis-layanan/{$layanan->id}")
+            ->assertRedirect('/jenis-layanan');
+
+        $this->assertDatabaseMissing('kiloans', ['id' => $kiloan->id]);
+        $this->assertDatabaseMissing('jenis_layanans', ['id' => $layanan->id]);
+    }
+
     public function test_flash_messages_are_shared_as_inertia_props_after_redirect(): void
     {
         $this->actingAs($this->admin)

@@ -86,6 +86,8 @@ class UserController extends Controller
 
         $this->users->delete($user);
 
-        return back()->with('success', 'Pengguna berhasil dihapus.');
+        return redirect()
+            ->route('users.index')
+            ->with('success', 'Pengguna berhasil dihapus.');
     }
 }

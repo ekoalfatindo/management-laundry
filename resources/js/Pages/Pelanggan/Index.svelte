@@ -1,54 +1,69 @@
 <script lang="ts">
-    import { router, useForm } from '@inertiajs/svelte';
-    import { untrack } from 'svelte';
-    import AppLayout from '../../Components/AppLayout.svelte';
-    import PageHeader from '../../Components/Ui/PageHeader.svelte';
-    import Modal from '../../Components/Ui/Modal.svelte';
-    import EmptyState from '../../Components/Ui/EmptyState.svelte';
-    import Pagination from '../../Components/Ui/Pagination.svelte';
-    import Button from '../../Components/Ui/Button.svelte';
-    import FormField from '../../Components/Ui/FormField.svelte';
-    import Icon from '../../Components/Ui/Icon.svelte';
-    import { cardClass, inputClass, tdClass, thClass } from '../../lib/ui';
-    import { confirmDelete } from '../../lib/notify';
-    import { dateOnly } from '../../lib/format';
-    import type { Paginated, UserRecord } from '../../types';
+    import { Link, router, useForm } from "@inertiajs/svelte";
+    import { untrack } from "svelte";
+    import AppLayout from "../../Components/AppLayout.svelte";
+    import PageHeader from "../../Components/Ui/PageHeader.svelte";
+    import Modal from "../../Components/Ui/Modal.svelte";
+    import EmptyState from "../../Components/Ui/EmptyState.svelte";
+    import Pagination from "../../Components/Ui/Pagination.svelte";
+    import Badge from "../../Components/Ui/Badge.svelte";
+    import Button from "../../Components/Ui/Button.svelte";
+    import FormField from "../../Components/Ui/FormField.svelte";
+    import Icon from "../../Components/Ui/Icon.svelte";
+    import { cardClass, inputClass, tdClass, thClass } from "../../lib/ui";
+    import { confirmDelete } from "../../lib/notify";
+    import { dateOnly } from "../../lib/format";
+    import type { Paginated, UserRecord } from "../../types";
 
     let {
         pelanggans,
         filters,
+        kategoriOptions,
     }: {
         pelanggans: Paginated<UserRecord>;
-        filters: { search: string; per_page: number };
+        filters: { search: string; kategori: string; per_page: number };
+        kategoriOptions: { value: string; label: string }[];
     } = $props();
 
     let search = $state(untrack(() => filters.search));
+    let kategori = $state(untrack(() => filters.kategori));
     let perPage = $state(untrack(() => filters.per_page));
+
+    $effect(() => {
+        search = filters.search;
+        kategori = filters.kategori;
+        perPage = filters.per_page;
+    });
 
     let modalOpen = $state(false);
     let editing = $state<UserRecord | null>(null);
 
     const form = useForm({
-        name: '',
-        email: '',
-        jenis_kelamin: 'Laki-Laki',
-        alamat: '',
-        password: '',
-        password_confirmation: '',
+        name: "",
+        email: "",
+        jenis_kelamin: "Laki-Laki",
+        alamat: "",
+        kategori_pelanggan: "Reguler",
+        password: "",
+        password_confirmation: "",
     });
 
     function applyFilters(event?: Event): void {
         event?.preventDefault();
 
         router.get(
-            '/pelanggan',
-            { search, per_page: perPage, page: 1 },
+            "/pelanggan",
+            { search, kategori, per_page: perPage, page: 1 },
             { preserveScroll: true, preserveState: true, replace: true },
         );
     }
 
     function goToPage(page: number): void {
-        router.get('/pelanggan', { search, per_page: perPage, page }, { preserveScroll: true, preserveState: true });
+        router.get(
+            "/pelanggan",
+            { search, kategori, per_page: perPage, page },
+            { preserveScroll: true, preserveState: true },
+        );
     }
 
     function changePerPage(event: Event): void {
@@ -60,7 +75,8 @@
         editing = null;
         form.reset();
         form.clearErrors();
-        form.jenis_kelamin = 'Laki-Laki';
+        form.jenis_kelamin = "Laki-Laki";
+        form.kategori_pelanggan = "Reguler";
         modalOpen = true;
     }
 
@@ -69,11 +85,18 @@
         form.clearErrors();
         form.name = user.name;
         form.email = user.email;
-        form.jenis_kelamin = user.jenis_kelamin ?? 'Laki-Laki';
-        form.alamat = user.alamat ?? '';
-        form.password = '';
-        form.password_confirmation = '';
+        form.jenis_kelamin = user.jenis_kelamin ?? "Laki-Laki";
+        form.alamat = user.alamat ?? "";
+        form.kategori_pelanggan = user.kategori_pelanggan ?? "Reguler";
+        form.password = "";
+        form.password_confirmation = "";
         modalOpen = true;
+    }
+
+    function kategoriTone(
+        kategoriPelanggan: UserRecord["kategori_pelanggan"],
+    ): "amber" | "slate" {
+        return kategoriPelanggan === "Member" ? "amber" : "slate";
     }
 
     function closeModal(): void {
@@ -101,22 +124,22 @@
         if (editing) {
             form.put(`/pelanggan/${editing.id}`, options);
         } else {
-            form.post('/pelanggan', options);
+            form.post("/pelanggan", options);
         }
     }
 
     function initials(name: string): string {
         return name
-            .split(' ')
+            .split(" ")
             .filter(Boolean)
             .slice(0, 2)
-            .map((part) => part[0]?.toUpperCase() ?? '')
-            .join('');
+            .map((part) => part[0]?.toUpperCase() ?? "")
+            .join("");
     }
 </script>
 
 <AppLayout title="Pelanggan">
-    <PageHeader title="Pelanggan" description="Kelola data pelanggan yang dapat dikaitkan ke nota.">
+    <PageHeader title="Pelanggan" description="Kelola data pelanggan.">
         <Button onclick={openCreate}>
             <Icon name="plus" class="size-4" />
             Tambah Pelanggan
@@ -124,10 +147,17 @@
     </PageHeader>
 
     <section class="{cardClass} overflow-hidden">
-        <div class="flex flex-col gap-3 border-b border-slate-200 p-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-            <form class="flex flex-1 gap-2" onsubmit={applyFilters}>
+        <div
+            class="flex flex-col gap-3 border-b border-slate-200 p-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <form
+                class="flex flex-1 flex-col gap-2 sm:flex-row"
+                onsubmit={applyFilters}
+            >
                 <div class="relative flex-1">
-                    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                    <span
+                        class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400"
+                    >
                         <Icon name="search" class="size-4" />
                     </span>
                     <input
@@ -138,12 +168,29 @@
                         bind:value={search}
                     />
                 </div>
+                <select
+                    class="{inputClass} sm:w-44"
+                    aria-label="Filter kategori pelanggan"
+                    bind:value={kategori}
+                >
+                    <option value="">Semua kategori</option>
+                    {#each kategoriOptions as option}
+                        <option value={option.value}>{option.label}</option>
+                    {/each}
+                </select>
                 <Button type="submit" variant="secondary">Cari</Button>
             </form>
 
-            <label class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <label
+                class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
+            >
                 Baris
-                <select class="{inputClass} w-20" aria-label="Jumlah baris per halaman" value={perPage} onchange={changePerPage}>
+                <select
+                    class="{inputClass} w-20"
+                    aria-label="Jumlah baris per halaman"
+                    value={perPage}
+                    onchange={changePerPage}
+                >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
                     <option value={50}>50</option>
@@ -153,40 +200,94 @@
         </div>
 
         {#if pelanggans.data.length === 0}
-            <EmptyState icon="customer" title="Pelanggan tidak ditemukan" description="Ubah kata kunci atau tambah pelanggan baru.">
+            <EmptyState
+                icon="customer"
+                title="Pelanggan tidak ditemukan"
+                description="Ubah kata kunci atau tambah pelanggan baru."
+            >
                 <Button onclick={openCreate}>Tambah Pelanggan</Button>
             </EmptyState>
         {:else}
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+                <table
+                    class="min-w-full divide-y divide-slate-200 dark:divide-slate-800"
+                >
                     <thead class="bg-slate-50 dark:bg-slate-800/60">
                         <tr>
                             <th class={thClass}>Nama</th>
-                            <th class="{thClass} hidden md:table-cell">Jenis Kelamin</th>
-                            <th class="{thClass} hidden lg:table-cell">Alamat</th>
-                            <th class="{thClass} hidden sm:table-cell">Dibuat</th>
+                            <th class={thClass}>Kategori</th>
+                            <th class="{thClass} hidden md:table-cell"
+                                >Jenis Kelamin</th
+                            >
+                            <th class="{thClass} hidden lg:table-cell"
+                                >Alamat</th
+                            >
+                            <th class="{thClass} hidden sm:table-cell"
+                                >Dibuat</th
+                            >
                             <th class="{thClass} text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody
+                        class="divide-y divide-slate-100 dark:divide-slate-800"
+                    >
                         {#each pelanggans.data as pelanggan (pelanggan.id)}
-                            <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <tr
+                                class="transition hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            >
                                 <td class={tdClass}>
                                     <div class="flex items-center gap-3">
-                                        <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white dark:bg-indigo-500">
+                                        <span
+                                            class="flex size-9 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white dark:bg-indigo-500"
+                                        >
                                             {initials(pelanggan.name)}
                                         </span>
                                         <div class="min-w-0">
-                                            <p class="truncate font-semibold text-slate-800 dark:text-slate-100">{pelanggan.name}</p>
-                                            <p class="truncate text-xs text-slate-500 dark:text-slate-400">{pelanggan.email}</p>
+                                            <p
+                                                class="truncate font-semibold text-slate-800 dark:text-slate-100"
+                                            >
+                                                {pelanggan.name}
+                                            </p>
+                                            <p
+                                                class="truncate text-xs text-slate-500 dark:text-slate-400"
+                                            >
+                                                {pelanggan.email}
+                                            </p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="{tdClass} hidden md:table-cell">{pelanggan.jenis_kelamin ?? '-'}</td>
-                                <td class="{tdClass} hidden max-w-xs truncate lg:table-cell">{pelanggan.alamat || '-'}</td>
-                                <td class="{tdClass} hidden text-slate-500 sm:table-cell dark:text-slate-400">{dateOnly(pelanggan.created_at)}</td>
-                                <td class="{tdClass}">
-                                    <div class="flex items-center justify-end gap-1">
+                                <td class={tdClass}>
+                                    <Badge
+                                        tone={kategoriTone(
+                                            pelanggan.kategori_pelanggan,
+                                        )}
+                                    >
+                                        {pelanggan.kategori_pelanggan ??
+                                            "Reguler"}
+                                    </Badge>
+                                </td>
+                                <td class="{tdClass} hidden md:table-cell"
+                                    >{pelanggan.jenis_kelamin ?? "-"}</td
+                                >
+                                <td
+                                    class="{tdClass} hidden max-w-xs truncate lg:table-cell"
+                                    >{pelanggan.alamat || "-"}</td
+                                >
+                                <td
+                                    class="{tdClass} hidden text-slate-500 sm:table-cell dark:text-slate-400"
+                                    >{dateOnly(pelanggan.created_at)}</td
+                                >
+                                <td class={tdClass}>
+                                    <div
+                                        class="flex items-center justify-end gap-1"
+                                    >
+                                        <Link
+                                            href={`/pelanggan/${pelanggan.id}`}
+                                            class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-orange-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-orange-300"
+                                            aria-label={`Lihat detail ${pelanggan.name}`}
+                                        >
+                                            <Icon name="eye" class="size-4" />
+                                        </Link>
                                         <button
                                             type="button"
                                             class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-orange-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-orange-300"
@@ -202,7 +303,7 @@
                                             onclick={() =>
                                                 confirmDelete({
                                                     url: `/pelanggan/${pelanggan.id}`,
-                                                    title: 'Hapus Pelanggan',
+                                                    title: "Hapus Pelanggan",
                                                     text: `Yakin ingin menghapus ${pelanggan.name}? Nota yang pernah dibuat tetap tersimpan.`,
                                                 })}
                                         >
@@ -222,35 +323,97 @@
         {/if}
     </section>
 
-    <Modal open={modalOpen} title={editing ? 'Ubah Pelanggan' : 'Tambah Pelanggan'} onclose={closeModal}>
+    <Modal
+        open={modalOpen}
+        title={editing ? "Ubah Pelanggan" : "Tambah Pelanggan"}
+        onclose={closeModal}
+    >
         <form class="space-y-4" onsubmit={submit} novalidate>
             <div class="grid gap-4 sm:grid-cols-2">
-                <FormField id="pelanggan-name" label="Nama" error={form.errors.name}>
-                    <input id="pelanggan-name" type="text" class={inputClass} bind:value={form.name} />
+                <FormField
+                    id="pelanggan-name"
+                    label="Nama"
+                    error={form.errors.name}
+                >
+                    <input
+                        id="pelanggan-name"
+                        type="text"
+                        class={inputClass}
+                        bind:value={form.name}
+                    />
                 </FormField>
 
-                <FormField id="pelanggan-email" label="Email" error={form.errors.email}>
-                    <input id="pelanggan-email" type="email" class={inputClass} bind:value={form.email} />
+                <FormField
+                    id="pelanggan-email"
+                    label="Email"
+                    error={form.errors.email}
+                >
+                    <input
+                        id="pelanggan-email"
+                        type="email"
+                        class={inputClass}
+                        bind:value={form.email}
+                    />
                 </FormField>
 
-                <FormField id="pelanggan-gender" label="Jenis Kelamin" error={form.errors.jenis_kelamin}>
-                    <select id="pelanggan-gender" class={inputClass} bind:value={form.jenis_kelamin}>
+                <FormField
+                    id="pelanggan-gender"
+                    label="Jenis Kelamin"
+                    error={form.errors.jenis_kelamin}
+                >
+                    <select
+                        id="pelanggan-gender"
+                        class={inputClass}
+                        bind:value={form.jenis_kelamin}
+                    >
                         <option value="Laki-Laki">Laki-Laki</option>
                         <option value="Perempuan">Perempuan</option>
                     </select>
                 </FormField>
 
-                <FormField id="pelanggan-alamat" label="Alamat" error={form.errors.alamat}>
-                    <input id="pelanggan-alamat" type="text" class={inputClass} bind:value={form.alamat} />
+                <FormField
+                    id="pelanggan-kategori"
+                    label="Kategori Pelanggan"
+                    error={form.errors.kategori_pelanggan}
+                >
+                    <select
+                        id="pelanggan-kategori"
+                        class={inputClass}
+                        bind:value={form.kategori_pelanggan}
+                    >
+                        <option value="Reguler">Reguler</option>
+                        <option value="Member">Member</option>
+                    </select>
+                </FormField>
+
+                <FormField
+                    id="pelanggan-alamat"
+                    label="Alamat"
+                    error={form.errors.alamat}
+                >
+                    <input
+                        id="pelanggan-alamat"
+                        type="text"
+                        class={inputClass}
+                        bind:value={form.alamat}
+                    />
                 </FormField>
 
                 <FormField
                     id="pelanggan-password"
-                    label={editing ? 'Kata Sandi (opsional)' : 'Kata Sandi'}
+                    label={editing ? "Kata Sandi (opsional)" : "Kata Sandi"}
                     error={form.errors.password}
-                    hint={editing ? 'Biarkan kosong jika tidak ingin mengubah.' : 'Minimal 8 karakter.'}
+                    hint={editing
+                        ? "Biarkan kosong jika tidak ingin mengubah."
+                        : "Minimal 8 karakter."}
                 >
-                    <input id="pelanggan-password" type="password" class={inputClass} bind:value={form.password} autocomplete="new-password" />
+                    <input
+                        id="pelanggan-password"
+                        type="password"
+                        class={inputClass}
+                        bind:value={form.password}
+                        autocomplete="new-password"
+                    />
                 </FormField>
 
                 <FormField
@@ -268,10 +431,20 @@
                 </FormField>
             </div>
 
-            <div class="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
-                <Button variant="secondary" onclick={closeModal} disabled={form.processing}>Batal</Button>
+            <div
+                class="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800"
+            >
+                <Button
+                    variant="secondary"
+                    onclick={closeModal}
+                    disabled={form.processing}>Batal</Button
+                >
                 <Button type="submit" disabled={form.processing}>
-                    {form.processing ? 'Menyimpan…' : editing ? 'Simpan Perubahan' : 'Tambah Pelanggan'}
+                    {form.processing
+                        ? "Menyimpan…"
+                        : editing
+                          ? "Simpan Perubahan"
+                          : "Tambah Pelanggan"}
                 </Button>
             </div>
         </form>

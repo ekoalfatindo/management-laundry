@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\KategoriPelanggan;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -62,21 +63,31 @@ class UserSeeder extends Seeder
             ['name' => 'Joko Susilo', 'email' => 'joko@laundry.test', 'jenis_kelamin' => 'Laki-Laki', 'alamat' => 'Jl. Mangga No. 3, Sukoharjo'],
         ];
 
+        $memberSinceMonths = [
+            'mega@laundry.test' => 10,
+            'ayu@laundry.test' => 9,
+            'citra@laundry.test' => 8,
+            'fitri@laundry.test' => 7,
+            'indah@laundry.test' => 6,
+        ];
+
         foreach ($staff as $user) {
             $this->seedUser($user, $user['role']);
         }
 
         foreach ($customers as $customer) {
-            $this->seedUser($customer, UserRole::Pelanggan);
+            $this->seedUser($customer, UserRole::Pelanggan, $memberSinceMonths[$customer['email']] ?? null);
         }
     }
 
     /**
      * @param  array{name: string, email: string, jenis_kelamin: string, alamat: string, role?: UserRole}  $data
      */
-    private function seedUser(array $data, UserRole $role): void
+    private function seedUser(array $data, UserRole $role, ?int $memberSinceMonths = null): void
     {
         unset($data['role']);
+
+        $isMember = $memberSinceMonths !== null;
 
         $user = User::query()->updateOrCreate(
             ['email' => $data['email']],
@@ -84,6 +95,8 @@ class UserSeeder extends Seeder
                 ...$data,
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
+                'kategori_pelanggan' => $isMember ? KategoriPelanggan::Member : KategoriPelanggan::Reguler,
+                'member_sejak' => $isMember ? now()->subMonthsNoOverflow($memberSinceMonths)->toDateString() : null,
             ],
         );
 

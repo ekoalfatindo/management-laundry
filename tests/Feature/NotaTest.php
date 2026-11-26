@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\JenisNota;
+use App\Enums\StatusNota;
 use App\Enums\UserRole;
 use App\Models\Barang;
 use App\Models\JenisLayanan;
@@ -13,6 +14,7 @@ use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
+use ZipArchive;
 
 class NotaTest extends TestCase
 {
@@ -97,6 +99,17 @@ class NotaTest extends TestCase
         $this->assertDatabaseCount('notas', 0);
     }
 
+    public function test_kiloan_nota_rejects_staff_account_as_customer(): void
+    {
+        $karyawan = $this->userWithRole(UserRole::Karyawan);
+
+        $this->actingAs($this->admin)
+            ->post('/nota/kiloan', $this->kiloanPayload(['pelanggan_id' => $karyawan->id]))
+            ->assertSessionHasErrors('pelanggan_id');
+
+        $this->assertDatabaseCount('notas', 0);
+    }
+
     public function test_satuan_validation_requires_at_least_one_item(): void
     {
         $this->actingAs($this->admin)
@@ -126,6 +139,58 @@ class NotaTest extends TestCase
         $this->assertSame(120000, $nota->total_harga);
         $this->assertSame(120000, $nota->jumlah);
         $this->assertSame('Ibu Sari Diperbarui', $nota->nama_pelanggan);
+    }
+
+    public function test_nota_update_rejects_staff_account_as_customer(): void
+    {
+        $this->actingAs($this->admin)->post('/nota/kiloan', $this->kiloanPayload());
+        $nota = Nota::query()->firstOrFail();
+        $karyawan = $this->userWithRole(UserRole::Karyawan);
+
+        $this->actingAs($this->admin)
+            ->from("/nota/{$nota->id}/edit")
+            ->put("/nota/{$nota->id}", $this->kiloanPayload([
+                'pelanggan_id' => $karyawan->id,
+                'nama_pelanggan' => 'Akun Staf',
+            ]))
+            ->assertSessionHasErrors('pelanggan_id');
+
+        $nota->refresh();
+
+        $this->assertNull($nota->pelanggan_id);
+        $this->assertSame('Ibu Sari', $nota->nama_pelanggan);
+    }
+
+    public function test_cancelled_nota_cannot_be_edited(): void
+    {
+        $this->actingAs($this->admin)->post('/nota/kiloan', $this->kiloanPayload());
+        $nota = Nota::query()->firstOrFail();
+        $nota->update(['status' => StatusNota::Dibatalkan]);
+
+        $this->actingAs($this->admin)
+            ->from("/nota/{$nota->id}")
+            ->put("/nota/{$nota->id}", $this->kiloanPayload(['berat' => 9, 'diskon' => 0]))
+            ->assertRedirect("/nota/{$nota->id}")
+            ->assertSessionHas('error', 'Nota yang dibatalkan tidak dapat diubah.');
+
+        $nota->refresh();
+
+        $this->assertSame('3.50', $nota->berat);
+        $this->assertSame(63000, $nota->jumlah);
+        $this->assertSame(StatusNota::Dibatalkan, $nota->status);
+    }
+
+    public function test_cancelled_nota_edit_page_is_blocked(): void
+    {
+        $this->actingAs($this->admin)->post('/nota/kiloan', $this->kiloanPayload());
+        $nota = Nota::query()->firstOrFail();
+        $nota->update(['status' => StatusNota::Dibatalkan]);
+
+        $this->actingAs($this->admin)
+            ->from('/nota')
+            ->get("/nota/{$nota->id}/edit")
+            ->assertRedirect('/nota')
+            ->assertSessionHas('error', 'Nota yang dibatalkan tidak dapat diubah.');
     }
 
     public function test_satuan_nota_update_replaces_item_rows(): void
@@ -230,20 +295,48 @@ class NotaTest extends TestCase
                 ->where('notas.meta.last_page', 2));
     }
 
-    public function test_export_streams_csv_with_headers_and_formula_guard(): void
+    public function test_export_downloads_tidy_xlsx_workbook(): void
     {
         $this->createNota('#EXPORT1', JenisNota::PaketKiloan, '2026-08-01 10:00:00', '=SUM(A1:A2)');
 
         $response = $this->actingAs($this->admin)->get('/nota/export');
 
         $response->assertOk();
+        $response->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->assertDownload();
 
-        $content = $response->streamedContent();
+        $disposition = (string) $response->headers->get('content-disposition');
+        $this->assertStringContainsString('.xlsx', $disposition);
 
-        $this->assertStringStartsWith("\xEF\xBB\xBF", $content);
-        $this->assertStringContainsString('"No Nota",Jenis,"Nama Pelanggan"', $content);
-        $this->assertStringContainsString('#EXPORT1', $content);
-        $this->assertStringContainsString("'=SUM(A1:A2)", $content);
+        $file = $response->baseResponse->getFile()->getPathname();
+        $this->assertFileExists($file);
+
+        $zip = new ZipArchive;
+        $this->assertTrue($zip->open($file) === true);
+
+        $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $styles = $zip->getFromName('xl/styles.xml');
+        $workbook = $zip->getFromName('xl/workbook.xml');
+
+        $this->assertIsString($sheet);
+        $this->assertIsString($styles);
+        $this->assertIsString($workbook);
+        $this->assertIsString($zip->getFromName('[Content_Types].xml'));
+
+        $this->assertStringContainsString('Laporan Nota Transaksi', $sheet);
+        $this->assertStringContainsString('Nama Pelanggan', $sheet);
+        $this->assertStringContainsString('#EXPORT1', $sheet);
+        $this->assertStringContainsString('=SUM(A1:A2)', $sheet);
+        $this->assertStringContainsString('t="inlineStr"', $sheet);
+        $this->assertStringContainsString('autoFilter', $sheet);
+        $this->assertStringContainsString('state="frozen"', $sheet);
+        $this->assertStringContainsString('TOTAL (1 nota)', $sheet);
+        $this->assertStringContainsString('&quot;Rp&quot; #,##0', $styles);
+        $this->assertStringContainsString('dd/mm/yyyy hh:mm', $styles);
+        $this->assertStringContainsString('Laporan Nota', $workbook);
+
+        $zip->close();
+        @unlink($file);
     }
 
     public function test_export_requires_permission(): void

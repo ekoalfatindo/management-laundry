@@ -39,7 +39,7 @@
                     {companyName}
                 </p>
                 <p class="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-orange-700 dark:text-orange-400">
-                    Invoice Laundry
+                    Invoice
                 </p>
             </div>
         </div>
@@ -48,6 +48,12 @@
             <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">Nomor Invoice</p>
             <p class="font-mono text-lg font-bold text-slate-900 dark:text-slate-50">{nota.no_nota}</p>
             <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{dateTime(nota.waktu)}</p>
+            <div class="mt-2 flex flex-wrap justify-end gap-1.5">
+                <Badge tone={nota.status === 'Selesai' ? 'teal' : nota.status === 'Dibatalkan' ? 'rose' : 'amber'}>
+                    {nota.status}
+                </Badge>
+                <Badge tone={nota.is_lunas ? 'teal' : 'amber'}>{nota.status_pembayaran}</Badge>
+            </div>
         </div>
     </header>
 
@@ -58,6 +64,13 @@
             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                 {nota.pelanggan?.email ?? 'Pelanggan umum'}
             </p>
+            {#if nota.pelanggan?.kategori_pelanggan}
+                <p class="mt-1">
+                    <Badge tone={nota.pelanggan.kategori_pelanggan === 'Member' ? 'amber' : 'slate'}>
+                        {nota.pelanggan.kategori_pelanggan}
+                    </Badge>
+                </p>
+            {/if}
         </div>
 
         <div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-800/60">
@@ -139,7 +152,9 @@
                 <dd class="font-medium">{rupiah(nota.total_harga)}</dd>
             </div>
             <div class="flex justify-between gap-3">
-                <dt class="text-slate-500 dark:text-slate-400">Diskon ({nota.diskon}%)</dt>
+                <dt class="text-slate-500 dark:text-slate-400">
+                    {nota.reward_label ? `Hadiah (${nota.reward_label})` : `Diskon (${nota.diskon}%)`}
+                </dt>
                 <dd class="font-medium">- {rupiah(totalPotongan)}</dd>
             </div>
             <div class="flex items-center justify-between gap-3 border-t border-slate-300 pt-2 dark:border-slate-700">

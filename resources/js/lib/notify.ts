@@ -69,6 +69,37 @@ export function flashToasts(flash?: FlashMessages | null): void {
     }
 }
 
+export async function confirmAction(options: {
+    title: string;
+    text: string;
+    confirmText?: string;
+    danger?: boolean;
+}): Promise<boolean> {
+    const result = await Swal.fire({
+        icon: options.danger ? 'warning' : 'question',
+        title: options.title,
+        text: options.text,
+        backdrop: BACKDROP,
+        showCancelButton: true,
+        reverseButtons: true,
+        focusCancel: true,
+        confirmButtonText: options.confirmText ?? 'Ya, lanjutkan',
+        cancelButtonText: 'Batal',
+        buttonsStyling: false,
+        customClass: {
+            popup: 'swal-laundry-popup',
+            icon: options.danger ? 'swal-laundry-icon swal-laundry-icon-danger' : 'swal-laundry-icon',
+            title: 'swal-laundry-title',
+            htmlContainer: 'swal-laundry-text',
+            actions: 'swal-laundry-actions',
+            confirmButton: options.danger ? 'swal-laundry-btn swal-laundry-btn-danger' : 'swal-laundry-btn swal-laundry-btn-confirm',
+            cancelButton: 'swal-laundry-btn swal-laundry-btn-cancel',
+        },
+    });
+
+    return Boolean(result.isConfirmed);
+}
+
 export async function confirmDelete(options: {
     url: string;
     title: string;

@@ -20,6 +20,7 @@ final readonly class NotaData
         public Carbon $waktu,
         public int $diskon,
         public array $barangs = [],
+        public ?int $customerRewardId = null,
     ) {}
 
     /**
@@ -43,6 +44,7 @@ final readonly class NotaData
                 ])
                 ->values()
                 ->all(),
+            customerRewardId: filled($data['customer_reward_id'] ?? null) ? (int) $data['customer_reward_id'] : null,
         );
     }
 }

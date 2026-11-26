@@ -25,6 +25,8 @@ class RolePermissionSeeder extends Seeder
         'nota.update',
         'nota.delete',
         'nota.export',
+        'loyalitas.manage',
+        'promosi.manage',
         'pengaturan.manage',
     ];
 

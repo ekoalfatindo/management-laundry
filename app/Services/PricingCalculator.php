@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\TipeHadiah;
+
 class PricingCalculator
 {
     /**
@@ -26,6 +28,19 @@ class PricingCalculator
         ));
 
         return $this->applyDiscount($subtotal + $biayaLayanan, $diskon);
+    }
+
+    public function potonganHadiah(int $total, TipeHadiah $tipe, int $nilai): int
+    {
+        $nilai = max(0, $nilai);
+
+        $potongan = match ($tipe) {
+            TipeHadiah::Persen => (int) round($total * min(100, $nilai) / 100),
+            TipeHadiah::Nominal => $nilai,
+            TipeHadiah::Gratis => $nilai > 0 ? $nilai : $total,
+        };
+
+        return max(0, min($total, $potongan));
     }
 
     /**

@@ -5,10 +5,19 @@
     import Badge from '../Ui/Badge.svelte';
     import Button from '../Ui/Button.svelte';
     import FormField from '../Ui/FormField.svelte';
+    import PelangganCombobox from './PelangganCombobox.svelte';
     import { cardClass, inputClass } from '../../lib/ui';
     import { rupiah } from '../../lib/format';
     import { terbilang } from '../../lib/terbilang';
-    import type { NotaFormOptions, NotaKind, NotaRecord } from '../../types';
+    import type {
+        NotaFormOptions,
+        NotaKind,
+        NotaRecord,
+        NotaRewardRecord,
+        PelangganOption,
+        RewardOption,
+        TipeHadiah,
+    } from '../../types';
 
     let {
         mode,
@@ -34,6 +43,7 @@
         jenis_layanan_id: nota?.jenis_layanan?.id ?? '',
         waktu: defaultWaktu,
         diskon: nota?.diskon ?? 0,
+        customer_reward_id: nota?.customer_reward_id ?? '',
         barangs:
             nota?.barangs && nota.barangs.length > 0
                 ? nota.barangs.map((barang) => ({
@@ -50,6 +60,7 @@
         berat: initial.berat,
         waktu: initial.waktu,
         diskon: initial.diskon,
+        customer_reward_id: initial.customer_reward_id,
     });
 
     const satuanForm = useForm({
@@ -58,6 +69,7 @@
         jenis_layanan_id: initial.jenis_layanan_id,
         waktu: initial.waktu,
         diskon: initial.diskon,
+        customer_reward_id: initial.customer_reward_id,
         barangs: initial.barangs,
     });
 
@@ -66,7 +78,23 @@
     let kiloanDiskon = $derived(Number(kiloanForm.diskon) || 0);
     let kiloanGross = $derived(Math.round(kiloanBerat * (kiloanSelected?.harga ?? 0)));
     let kiloanPotongan = $derived(Math.round((kiloanGross * kiloanDiskon) / 100));
-    let kiloanNet = $derived(kiloanGross - kiloanPotongan);
+
+    let kiloanExistingReward: NotaRewardRecord | null = $derived.by(() => {
+        if (mode !== 'edit' || !nota?.reward || nota.pelanggan_id === null) {
+            return null;
+        }
+
+        return Number(nota.pelanggan_id) === Number(kiloanForm.pelanggan_id) ? nota.reward : null;
+    });
+    let kiloanRewardChoices = $derived(rewardChoices(kiloanForm.pelanggan_id, kiloanExistingReward));
+    let kiloanSelectedReward = $derived(
+        kiloanRewardChoices.find((reward) => reward.id === Number(kiloanForm.customer_reward_id)) ?? null,
+    );
+    let kiloanHadiah: RewardOption | null = $derived(kiloanSelectedReward);
+    let kiloanRewardPotongan = $derived(
+        kiloanHadiah ? potonganHadiah(kiloanHadiah.tipe_hadiah, kiloanHadiah.nilai_hadiah, kiloanGross) : 0,
+    );
+    let kiloanNet = $derived(kiloanGross - (kiloanHadiah ? kiloanRewardPotongan : kiloanPotongan));
 
     let satuanLayanan = $derived(
         options.jenisLayanans.find((layanan) => layanan.id === Number(satuanForm.jenis_layanan_id)) ?? null,
@@ -87,21 +115,129 @@
     let satuanSubtotal = $derived(satuanLines.reduce((sum, line) => sum + line.total, 0));
     let satuanGross = $derived(satuanSubtotal + (satuanLayanan?.harga ?? 0));
     let satuanPotongan = $derived(Math.round((satuanGross * satuanDiskon) / 100));
-    let satuanNet = $derived(satuanGross - satuanPotongan);
 
-    function pickPelangganKiloan(): void {
-        const pelanggan = options.pelanggans.find((option) => option.id === Number(kiloanForm.pelanggan_id));
+    let satuanExistingReward: NotaRewardRecord | null = $derived.by(() => {
+        if (mode !== 'edit' || !nota?.reward || nota.pelanggan_id === null) {
+            return null;
+        }
 
-        if (pelanggan) {
-            kiloanForm.nama_pelanggan = pelanggan.name;
+        return Number(nota.pelanggan_id) === Number(satuanForm.pelanggan_id) ? nota.reward : null;
+    });
+    let satuanRewardChoices = $derived(rewardChoices(satuanForm.pelanggan_id, satuanExistingReward));
+    let satuanSelectedReward = $derived(
+        satuanRewardChoices.find((reward) => reward.id === Number(satuanForm.customer_reward_id)) ?? null,
+    );
+    let satuanHadiah: RewardOption | null = $derived(satuanSelectedReward);
+    let satuanRewardPotongan = $derived(
+        satuanHadiah ? potonganHadiah(satuanHadiah.tipe_hadiah, satuanHadiah.nilai_hadiah, satuanGross) : 0,
+    );
+    let satuanNet = $derived(satuanGross - (satuanHadiah ? satuanRewardPotongan : satuanPotongan));
+
+    function potonganHadiah(tipe: TipeHadiah, nilai: number, gross: number): number {
+        const value = Math.max(0, nilai);
+
+        if (tipe === 'persen') {
+            return Math.round((gross * Math.min(100, value)) / 100);
+        }
+
+        const potongan = tipe === 'gratis' ? (value > 0 ? value : gross) : value;
+
+        return Math.max(0, Math.min(gross, potongan));
+    }
+
+    function nilaiLabel(tipe: TipeHadiah, nilai: number): string {
+        if (tipe === 'persen') {
+            return `${nilai}%`;
+        }
+
+        if (tipe === 'nominal') {
+            return rupiah(nilai);
+        }
+
+        return nilai > 0 ? `Gratis s.d. ${rupiah(nilai)}` : 'Gratis penuh';
+    }
+
+    function rewardsFor(pelangganId: string | number): RewardOption[] {
+        if (!pelangganId) {
+            return [];
+        }
+
+        return options.hadiahs.filter((reward) => reward.user_id === Number(pelangganId));
+    }
+
+    function rewardChoices(pelangganId: string | number, existing: NotaRewardRecord | null): RewardOption[] {
+        const available = rewardsFor(pelangganId);
+
+        if (!existing || available.some((reward) => reward.id === existing.id)) {
+            return available;
+        }
+
+        return [
+            {
+                id: existing.id,
+                user_id: Number(pelangganId),
+                user_name: nota?.nama_pelanggan ?? null,
+                label: existing.label,
+                tipe_hadiah: existing.tipe_hadiah,
+                nilai_hadiah: existing.nilai_hadiah,
+                nilai_label: nilaiLabel(existing.tipe_hadiah, existing.nilai_hadiah),
+                kedaluwarsa_at: null,
+            },
+            ...available,
+        ];
+    }
+
+    function applyRewardChoice(
+        form: { customer_reward_id: string | number },
+        pelangganId: string | number,
+        choices: RewardOption[],
+    ): void {
+        if (!form.customer_reward_id) {
+            return;
+        }
+
+        const reward = choices.find((option) => option.id === Number(form.customer_reward_id));
+
+        if (!reward || reward.user_id !== Number(pelangganId)) {
+            form.customer_reward_id = '';
         }
     }
 
-    function pickPelangganSatuan(): void {
-        const pelanggan = options.pelanggans.find((option) => option.id === Number(satuanForm.pelanggan_id));
+    function pickPelangganKiloan(pelanggan: PelangganOption | null): void {
+        const sebelumnya = kiloanForm.pelanggan_id;
+        kiloanForm.pelanggan_id = pelanggan?.id ?? '';
+
+        if (pelanggan) {
+            kiloanForm.nama_pelanggan = pelanggan.name;
+        } else if (sebelumnya) {
+            kiloanForm.nama_pelanggan = '';
+        }
+
+        applyRewardChoice(kiloanForm, kiloanForm.pelanggan_id, kiloanRewardChoices);
+    }
+
+    function pickPelangganSatuan(pelanggan: PelangganOption | null): void {
+        const sebelumnya = satuanForm.pelanggan_id;
+        satuanForm.pelanggan_id = pelanggan?.id ?? '';
 
         if (pelanggan) {
             satuanForm.nama_pelanggan = pelanggan.name;
+        } else if (sebelumnya) {
+            satuanForm.nama_pelanggan = '';
+        }
+
+        applyRewardChoice(satuanForm, satuanForm.pelanggan_id, satuanRewardChoices);
+    }
+
+    function chooseRewardKiloan(): void {
+        if (kiloanForm.customer_reward_id) {
+            kiloanForm.diskon = 0;
+        }
+    }
+
+    function chooseRewardSatuan(): void {
+        if (satuanForm.customer_reward_id) {
+            satuanForm.diskon = 0;
         }
     }
 
@@ -208,17 +344,12 @@
                 </FormField>
 
                 <FormField id="kiloan-pelanggan" label="Pelanggan Terdaftar (opsional)" error={kiloanForm.errors.pelanggan_id}>
-                    <select
+                    <PelangganCombobox
                         id="kiloan-pelanggan"
-                        class={inputClass}
-                        bind:value={kiloanForm.pelanggan_id}
-                        onchange={pickPelangganKiloan}
-                    >
-                        <option value="">Pelanggan umum</option>
-                        {#each options.pelanggans as pelanggan}
-                            <option value={pelanggan.id}>{pelanggan.name}</option>
-                        {/each}
-                    </select>
+                        value={kiloanForm.pelanggan_id}
+                        options={options.pelanggans}
+                        onselect={pickPelangganKiloan}
+                    />
                 </FormField>
 
                 <FormField id="kiloan-paket" label="Paket Kiloan" error={kiloanForm.errors.kiloan_id}>
@@ -235,6 +366,7 @@
                         id="kiloan-berat"
                         type="number"
                         min="0.1"
+                        max="1000"
                         step="0.01"
                         class={inputClass}
                         bind:value={kiloanForm.berat}
@@ -245,17 +377,51 @@
                     <input id="kiloan-waktu" type="datetime-local" class={inputClass} bind:value={kiloanForm.waktu} />
                 </FormField>
 
-                <FormField id="kiloan-diskon" label="Diskon (%)" error={kiloanForm.errors.diskon}>
+                <FormField
+                    id="kiloan-diskon"
+                    label="Diskon (%)"
+                    error={kiloanForm.errors.diskon}
+                    hint={kiloanHadiah ? 'Dinonaktifkan karena menggunakan hadiah.' : ''}
+                >
                     <input
                         id="kiloan-diskon"
                         type="number"
                         min="0"
                         max="100"
                         step="1"
-                        class={inputClass}
+                        class="{inputClass} disabled:cursor-not-allowed disabled:opacity-60"
                         bind:value={kiloanForm.diskon}
+                        disabled={kiloanHadiah !== null}
                     />
                 </FormField>
+
+                <div class="sm:col-span-2">
+                    <FormField
+                        id="kiloan-hadiah"
+                        label="Gunakan Hadiah (opsional)"
+                        error={kiloanForm.errors.customer_reward_id}
+                        hint={!kiloanForm.pelanggan_id
+                            ? 'Pilih pelanggan terdaftar untuk melihat hadiah yang tersedia.'
+                            : kiloanRewardChoices.length === 0
+                              ? 'Tidak ada hadiah tersedia untuk pelanggan ini.'
+                              : kiloanExistingReward && Number(kiloanForm.customer_reward_id) === kiloanExistingReward.id
+                                ? 'Hadiah ini terpasang pada nota. Pilih "Tanpa hadiah" untuk melepasnya.'
+                                : 'Hadiah tidak dapat digabung dengan diskon persen manual.'}
+                    >
+                        <select
+                            id="kiloan-hadiah"
+                            class={inputClass}
+                            bind:value={kiloanForm.customer_reward_id}
+                            onchange={chooseRewardKiloan}
+                            disabled={!kiloanForm.pelanggan_id || kiloanRewardChoices.length === 0}
+                        >
+                            <option value="">Tanpa hadiah</option>
+                            {#each kiloanRewardChoices as reward}
+                                <option value={reward.id}>{reward.label} — {reward.nilai_label}</option>
+                            {/each}
+                        </select>
+                    </FormField>
+                </div>
             </div>
 
             <div class="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
@@ -286,10 +452,17 @@
                         <dt class="text-slate-500 dark:text-slate-400">Subtotal</dt>
                         <dd class="font-medium">{rupiah(kiloanGross)}</dd>
                     </div>
-                    <div class="flex justify-between gap-4">
-                        <dt class="text-slate-500 dark:text-slate-400">Diskon ({kiloanDiskon}%)</dt>
-                        <dd class="font-medium text-rose-600 dark:text-rose-400">- {rupiah(kiloanPotongan)}</dd>
-                    </div>
+                    {#if kiloanHadiah}
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-slate-500 dark:text-slate-400">Hadiah: {kiloanHadiah.label}</dt>
+                            <dd class="font-medium text-rose-600 dark:text-rose-400">- {rupiah(kiloanRewardPotongan)}</dd>
+                        </div>
+                    {:else}
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-slate-500 dark:text-slate-400">Diskon ({kiloanDiskon}%)</dt>
+                            <dd class="font-medium text-rose-600 dark:text-rose-400">- {rupiah(kiloanPotongan)}</dd>
+                        </div>
+                    {/if}
                     <div class="flex justify-between gap-4 border-t border-slate-200 pt-3 dark:border-slate-800">
                         <dt class="font-semibold">Total bayar</dt>
                         <dd class="text-lg font-bold text-orange-700 dark:text-orange-400">{rupiah(kiloanNet)}</dd>
@@ -325,17 +498,12 @@
                 </FormField>
 
                 <FormField id="satuan-pelanggan" label="Pelanggan Terdaftar (opsional)" error={satuanForm.errors.pelanggan_id}>
-                    <select
+                    <PelangganCombobox
                         id="satuan-pelanggan"
-                        class={inputClass}
-                        bind:value={satuanForm.pelanggan_id}
-                        onchange={pickPelangganSatuan}
-                    >
-                        <option value="">Pelanggan umum</option>
-                        {#each options.pelanggans as pelanggan}
-                            <option value={pelanggan.id}>{pelanggan.name}</option>
-                        {/each}
-                    </select>
+                        value={satuanForm.pelanggan_id}
+                        options={options.pelanggans}
+                        onselect={pickPelangganSatuan}
+                    />
                 </FormField>
 
                 <FormField id="satuan-layanan" label="Jenis Layanan" error={satuanForm.errors.jenis_layanan_id}>
@@ -351,17 +519,51 @@
                     <input id="satuan-waktu" type="datetime-local" class={inputClass} bind:value={satuanForm.waktu} />
                 </FormField>
 
-                <FormField id="satuan-diskon" label="Diskon (%)" error={satuanForm.errors.diskon}>
+                <FormField
+                    id="satuan-diskon"
+                    label="Diskon (%)"
+                    error={satuanForm.errors.diskon}
+                    hint={satuanHadiah ? 'Dinonaktifkan karena menggunakan hadiah.' : ''}
+                >
                     <input
                         id="satuan-diskon"
                         type="number"
                         min="0"
                         max="100"
                         step="1"
-                        class={inputClass}
+                        class="{inputClass} disabled:cursor-not-allowed disabled:opacity-60"
                         bind:value={satuanForm.diskon}
+                        disabled={satuanHadiah !== null}
                     />
                 </FormField>
+
+                <div class="sm:col-span-2">
+                    <FormField
+                        id="satuan-hadiah"
+                        label="Gunakan Hadiah (opsional)"
+                        error={satuanForm.errors.customer_reward_id}
+                        hint={!satuanForm.pelanggan_id
+                            ? 'Pilih pelanggan terdaftar untuk melihat hadiah yang tersedia.'
+                            : satuanRewardChoices.length === 0
+                              ? 'Tidak ada hadiah tersedia untuk pelanggan ini.'
+                              : satuanExistingReward && Number(satuanForm.customer_reward_id) === satuanExistingReward.id
+                                ? 'Hadiah ini terpasang pada nota. Pilih "Tanpa hadiah" untuk melepasnya.'
+                                : 'Hadiah tidak dapat digabung dengan diskon persen manual.'}
+                    >
+                        <select
+                            id="satuan-hadiah"
+                            class={inputClass}
+                            bind:value={satuanForm.customer_reward_id}
+                            onchange={chooseRewardSatuan}
+                            disabled={!satuanForm.pelanggan_id || satuanRewardChoices.length === 0}
+                        >
+                            <option value="">Tanpa hadiah</option>
+                            {#each satuanRewardChoices as reward}
+                                <option value={reward.id}>{reward.label} — {reward.nilai_label}</option>
+                            {/each}
+                        </select>
+                    </FormField>
+                </div>
             </div>
 
             <div class="mt-6">
@@ -397,6 +599,7 @@
                                         id={`satuan-qty-${index}`}
                                         type="number"
                                         min="1"
+                                        max="100000"
                                         step="1"
                                         class={inputClass}
                                         bind:value={row.jumlah_barang}
@@ -453,10 +656,17 @@
                         <dt class="text-slate-500 dark:text-slate-400">Subtotal</dt>
                         <dd class="font-medium">{rupiah(satuanGross)}</dd>
                     </div>
-                    <div class="flex justify-between gap-4">
-                        <dt class="text-slate-500 dark:text-slate-400">Diskon ({satuanDiskon}%)</dt>
-                        <dd class="font-medium text-rose-600 dark:text-rose-400">- {rupiah(satuanPotongan)}</dd>
-                    </div>
+                    {#if satuanHadiah}
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-slate-500 dark:text-slate-400">Hadiah: {satuanHadiah.label}</dt>
+                            <dd class="font-medium text-rose-600 dark:text-rose-400">- {rupiah(satuanRewardPotongan)}</dd>
+                        </div>
+                    {:else}
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-slate-500 dark:text-slate-400">Diskon ({satuanDiskon}%)</dt>
+                            <dd class="font-medium text-rose-600 dark:text-rose-400">- {rupiah(satuanPotongan)}</dd>
+                        </div>
+                    {/if}
                     <div class="flex justify-between gap-4 border-t border-slate-200 pt-3 dark:border-slate-800">
                         <dt class="font-semibold">Total bayar</dt>
                         <dd class="text-lg font-bold text-orange-700 dark:text-orange-400">{rupiah(satuanNet)}</dd>

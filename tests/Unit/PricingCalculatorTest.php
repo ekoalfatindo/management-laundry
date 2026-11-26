@@ -10,21 +10,21 @@ class PricingCalculatorTest extends TestCase
 {
     public function test_kiloan_total_is_rounded_from_weight_and_price(): void
     {
-        $result = (new PricingCalculator())->kiloan(3.5, 20000, 0);
+        $result = (new PricingCalculator)->kiloan(3.5, 20000, 0);
 
         $this->assertSame(['total_harga' => 70000, 'jumlah' => 70000], $result);
     }
 
     public function test_kiloan_rounds_fractional_rupiah(): void
     {
-        $result = (new PricingCalculator())->kiloan(1.333, 15000, 0);
+        $result = (new PricingCalculator)->kiloan(1.333, 15000, 0);
 
         $this->assertSame(19995, $result['total_harga']);
     }
 
     public function test_kiloan_discount_is_rounded(): void
     {
-        $result = (new PricingCalculator())->kiloan(2.25, 25000, 10);
+        $result = (new PricingCalculator)->kiloan(2.25, 25000, 10);
 
         $this->assertSame(56250, $result['total_harga']);
         $this->assertSame(50625, $result['jumlah']);
@@ -32,7 +32,7 @@ class PricingCalculatorTest extends TestCase
 
     public function test_satuan_adds_service_fee_and_discount(): void
     {
-        $result = (new PricingCalculator())->satuan([
+        $result = (new PricingCalculator)->satuan([
             ['total_harga' => 20000],
             ['total_harga' => 30000],
         ], 15000, 10);
@@ -44,7 +44,7 @@ class PricingCalculatorTest extends TestCase
     #[DataProvider('discountBounds')]
     public function test_discount_is_clamped_between_zero_and_one_hundred(int $diskon, int $expected): void
     {
-        $result = (new PricingCalculator())->kiloan(1, 100000, $diskon);
+        $result = (new PricingCalculator)->kiloan(1, 100000, $diskon);
 
         $this->assertSame($expected, $result['jumlah']);
     }

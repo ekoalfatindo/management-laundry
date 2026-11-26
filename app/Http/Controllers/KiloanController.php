@@ -67,6 +67,8 @@ class KiloanController extends Controller
 
         $kiloan->delete();
 
-        return back()->with('success', 'Paket kiloan berhasil dihapus.');
+        return redirect()
+            ->route('kiloan.index')
+            ->with('success', 'Paket kiloan berhasil dihapus.');
     }
 }

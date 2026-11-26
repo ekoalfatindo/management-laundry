@@ -5,11 +5,15 @@ namespace App\Services;
 use App\Actions\Nota\GenerateNomorNota;
 use App\DTOs\NotaData;
 use App\Enums\JenisNota;
+use App\Enums\StatusNota;
+use App\Enums\StatusPembayaran;
 use App\Exceptions\DomainException;
 use App\Models\Barang;
 use App\Models\JenisLayanan;
 use App\Models\Kiloan;
 use App\Models\Nota;
+use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class NotaService
@@ -17,6 +21,7 @@ class NotaService
     public function __construct(
         private readonly PricingCalculator $pricing,
         private readonly GenerateNomorNota $nomor,
+        private readonly RewardService $rewards,
     ) {}
 
     public function create(NotaData $data): Nota
@@ -28,23 +33,38 @@ class NotaService
                 'pelanggan_id' => $data->pelangganId,
                 'nama_pelanggan' => $data->namaPelanggan,
                 'waktu' => $data->waktu,
-                'diskon' => $data->diskon,
+                'diskon' => $this->effectiveDiskon($data),
             ]);
 
             $this->persist($nota, $data);
+            $this->applyReward($nota, $data);
+            $this->syncCustomer($nota->pelanggan_id);
 
-            return $nota->fresh(['kiloan', 'jenisLayanan', 'barangs.barang']);
+            return $nota->fresh(['kiloan', 'jenisLayanan', 'barangs.barang', 'reward']);
         });
     }
 
     public function update(Nota $nota, NotaData $data): Nota
     {
         return DB::transaction(function () use ($nota, $data): Nota {
+            $nota = Nota::query()->whereKey($nota->id)->lockForUpdate()->firstOrFail();
+
+            if ($nota->isDibatalkan()) {
+                throw new DomainException('Nota yang dibatalkan tidak dapat diubah.');
+            }
+
+            $previousCustomerId = $nota->pelanggan_id;
+
+            $this->rewards->releaseFor($nota);
+
             $nota->fill([
                 'pelanggan_id' => $data->pelangganId,
                 'nama_pelanggan' => $data->namaPelanggan,
                 'waktu' => $data->waktu,
-                'diskon' => $data->diskon,
+                'diskon' => $this->effectiveDiskon($data),
+                'diskon_nominal' => 0,
+                'reward_label' => null,
+                'customer_reward_id' => null,
             ]);
 
             if ($nota->jenis === JenisNota::BarangSatuan) {
@@ -52,14 +72,78 @@ class NotaService
             }
 
             $this->persist($nota, $data, $nota->jenis);
+            $this->applyReward($nota, $data);
 
-            return $nota->fresh(['kiloan', 'jenisLayanan', 'barangs.barang']);
+            if ($previousCustomerId !== null && $previousCustomerId !== $nota->pelanggan_id) {
+                $this->syncCustomer($previousCustomerId);
+            }
+
+            $this->syncCustomer($nota->pelanggan_id);
+
+            return $nota->fresh(['kiloan', 'jenisLayanan', 'barangs.barang', 'reward']);
         });
     }
 
     public function delete(Nota $nota): void
     {
-        DB::transaction(fn () => $nota->delete());
+        DB::transaction(function () use ($nota): void {
+            $nota = Nota::query()->whereKey($nota->id)->lockForUpdate()->firstOrFail();
+            $customerId = $nota->pelanggan_id;
+
+            $this->rewards->assertCancelable($nota);
+            $this->rewards->releaseFor($nota);
+            $nota->delete();
+            $this->syncCustomer($customerId);
+        });
+    }
+
+    public function complete(Nota $nota): Nota
+    {
+        return DB::transaction(function () use ($nota): Nota {
+            $nota = Nota::query()->whereKey($nota->id)->lockForUpdate()->firstOrFail();
+
+            if ($nota->isDibatalkan()) {
+                throw new DomainException('Nota yang dibatalkan tidak dapat diselesaikan.');
+            }
+
+            $nota->update(['status' => StatusNota::Selesai]);
+            $this->syncCustomer($nota->pelanggan_id);
+
+            return $nota->refresh();
+        });
+    }
+
+    public function cancel(Nota $nota): Nota
+    {
+        return DB::transaction(function () use ($nota): Nota {
+            $nota = Nota::query()->whereKey($nota->id)->lockForUpdate()->firstOrFail();
+
+            if ($nota->isDibatalkan()) {
+                throw new DomainException('Nota sudah dibatalkan.');
+            }
+
+            $customerId = $nota->pelanggan_id;
+
+            $this->rewards->assertCancelable($nota);
+            $this->rewards->releaseFor($nota);
+
+            $nota->update([
+                'status' => StatusNota::Dibatalkan,
+                'dibatalkan_at' => Carbon::now(),
+                'customer_reward_id' => null,
+            ]);
+
+            $this->syncCustomer($customerId);
+
+            return $nota->refresh();
+        });
+    }
+
+    public function setPembayaran(Nota $nota, StatusPembayaran $status): Nota
+    {
+        $nota->update(['status_pembayaran' => $status]);
+
+        return $nota->refresh();
     }
 
     private function persist(Nota $nota, NotaData $data, ?JenisNota $jenis = null): void
@@ -89,7 +173,7 @@ class NotaService
             throw new DomainException('Berat cucian harus lebih dari 0 kg.');
         }
 
-        $total = $this->pricing->kiloan($berat, $kiloan->harga, $data->diskon);
+        $total = $this->pricing->kiloan($berat, $kiloan->harga, $this->effectiveDiskon($data));
 
         $nota->fill([
             'jenis_layanan_id' => null,
@@ -118,7 +202,7 @@ class NotaService
             throw new DomainException('Minimal satu barang harus diisi.');
         }
 
-        $total = $this->pricing->satuan($baris, $layanan->harga, $data->diskon);
+        $total = $this->pricing->satuan($baris, $layanan->harga, $this->effectiveDiskon($data));
 
         $nota->fill([
             'jenis_layanan_id' => $layanan->id,
@@ -132,6 +216,53 @@ class NotaService
 
         $nota->save();
         $nota->barangs()->createMany($baris);
+    }
+
+    private function applyReward(Nota $nota, NotaData $data): void
+    {
+        $potongan = 0;
+        $label = null;
+        $rewardId = null;
+
+        if ($data->customerRewardId !== null) {
+            $customer = $data->pelangganId !== null ? User::query()->find($data->pelangganId) : null;
+
+            if ($customer === null) {
+                throw new DomainException('Hadiah hanya dapat digunakan untuk pelanggan terdaftar.');
+            }
+
+            $reserved = $this->rewards->reserve($customer, $data->customerRewardId, $nota->total_harga, $nota);
+            $potongan = $reserved['potongan'];
+            $label = $reserved['reward']->label;
+            $rewardId = $reserved['reward']->id;
+        }
+
+        $nota->fill([
+            'diskon_nominal' => $potongan,
+            'reward_label' => $label,
+            'customer_reward_id' => $rewardId,
+            'jumlah' => $rewardId !== null ? max(0, $nota->total_harga - $potongan) : $nota->jumlah,
+        ]);
+
+        $nota->save();
+    }
+
+    private function effectiveDiskon(NotaData $data): int
+    {
+        return $data->customerRewardId !== null ? 0 : $data->diskon;
+    }
+
+    private function syncCustomer(?int $customerId): void
+    {
+        if ($customerId === null) {
+            return;
+        }
+
+        $customer = User::query()->find($customerId);
+
+        if ($customer !== null) {
+            $this->rewards->sync($customer);
+        }
     }
 
     /**
