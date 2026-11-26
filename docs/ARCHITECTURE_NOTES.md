@@ -23,7 +23,7 @@
 | Dashboard di `/dashboard` | Dashboard di `/` (name `dashboard`) |
 | Satu route `POST /nota` | Dua route: `POST /nota/kiloan` dan `POST /nota/satuan` |
 | `GET /nota-export` | `GET /nota/export` dengan filter daftar nota |
-| `NotaExportController` terpisah | `NotaController@export` (streamed CSV) |
+| `NotaExportController` terpisah | `NotaController@export` + `App\Support\NotaExcelExport` (workbook XLSX native) |
 | Policy `KaryawanPolicy`, `PelangganPolicy` | Tidak ada; `UserPolicy` + permission middleware, guard bisnis di `UserService` |
 | Komponen `Layouts/AppLayout`, `DataTable`, `FlashToast` | `Components/AppLayout` (toast SweetAlert2 via `lib/notify.ts`), tabel per halaman |
 | Permission `pelanggan.view` + `manage` | Hanya `pelanggan.manage` |

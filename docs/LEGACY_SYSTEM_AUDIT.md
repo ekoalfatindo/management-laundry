@@ -196,4 +196,5 @@ dicatat pada `FEATURE_INVENTORY.md` dan `LEGACY_MIGRATION_REPORT.md`.
    pelanggan opsional + index laporan.
 6. Pertahankan dua jenis nota, diskon persen, format nomor nota, struk cetak, dashboard, dan ekspor.
 7. Register publik dihapus karena legacy tidak menyediakan area pelanggan; akun dibuat oleh admin.
-8. Ekspor nota memakai CSV (kompatibel Excel) alih-alih SheetJS; tetap menyertakan kolom yang sama.
+8. Ekspor nota memakai XLSX native (Open XML) alih-alih SheetJS; tetap menyertakan kolom yang
+   sama dengan tata letak laporan.

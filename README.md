@@ -1,6 +1,6 @@
 # Laundry Management System
 
-Aplikasi manajemen laundry untuk mengelola transaksi dan operasional harian: master pelanggan/karyawan/pengguna, katalog barang satuan & paket kiloan, jenis layanan, nota transaksi (kiloan/satuan), invoice A4 dengan terbilang Bahasa Indonesia, identitas perusahaan (Setup), dashboard, dan ekspor laporan CSV. Staf menggunakan aplikasi internal, sedangkan pelanggan memiliki **portal sendiri** (`/akun`) untuk melihat riwayat nota miliknya dan mengunduh PDF.
+Aplikasi manajemen laundry untuk mengelola transaksi dan operasional harian: master pelanggan/karyawan/pengguna dengan kategori Reguler/Member, katalog barang satuan & paket kiloan, jenis layanan, nota transaksi (kiloan/satuan) berstatus proses/selesai/batal, program loyalitas Member, promosi berulang, pemakaian hadiah, invoice A4 dan struk thermal 58/80 mm dengan terbilang Bahasa Indonesia, identitas perusahaan (Setup), dashboard, dan ekspor laporan Excel (.xlsx). Staf menggunakan aplikasi internal, sedangkan pelanggan memiliki **portal sendiri** (`/akun`) untuk melihat riwayat nota miliknya dan mengunduh PDF.
 
 Dibangun dengan:
 
@@ -39,17 +39,21 @@ Terima kasih atas dukungan dan apresiasi Anda. Setiap kontribusi sangat berarti 
 - **Lupa kata sandi**: pengiriman tautan reset via email menggunakan Laravel password broker (token kedaluwarsa & sekali pakai) pada halaman reset terpisah, tanpa membocorkan status pendaftaran email.
 - **Dashboard**: pendapatan total & bulan ini, jumlah nota, pengguna, paket, grafik 12 bulan, dan daftar nota terbaru.
 - **Manajemen data master**: CRUD pengguna, karyawan, pelanggan, barang satuan, paket kiloan, dan jenis layanan, dengan label menu **Harga Per Barang** dan **Harga Paket Kiloan** (route dan tabel tetap).
-- **Transaksi nota**: mendukung **Paket Kiloan** (`berat × harga/kg`) dan **Barang Satuan** (multi-baris + biaya layanan), diskon persen `0–100%`, kalkulasi ulang seluruh nominal di server, serta snapshot harga pada nota.
+- **Kategori pelanggan**: setiap pelanggan diklasifikasikan sebagai **Reguler** atau **Member** (dengan tanggal mulai member), dapat difilter, ditampilkan sebagai badge, serta memiliki halaman detail berisi riwayat transaksi, total belanja, dan riwayat hadiah. Perubahan kategori tidak mengubah riwayat nota.
+- **Program loyalitas Member**: target transaksi, jenis hadiah (diskon persen, potongan nominal, gratis cuci), nilai hadiah, masa berlaku, dan status aktif dapat diatur admin. Hadiah diterbitkan otomatis saat transaksi **Selesai** mencapai target, hanya dapat dipakai sekali pada transaksi berikutnya, dan tidak dapat digabung dengan diskon persen manual.
+- **Promosi berulang**: promosi untuk Reguler, Member, atau semua pelanggan dengan periode berlaku, syarat, target transaksi, dan hadiah. Promosi aktif menerbitkan hadiah secara otomatis, sedangkan promosi nonaktif atau kedaluwarsa tidak menerbitkan hadiah. Loyalitas dan promosi dihitung terpisah tanpa duplikasi.
+- **Status nota & pembayaran**: status **Diproses / Selesai / Dibatalkan** dan pembayaran **Belum Lunas / Lunas**. Pembatalan melepas atau mencabut hadiah terkait dan dicegah jika hadiah dari transaksi tersebut sudah terpakai di nota lain.
+- **Transaksi nota**: mendukung **Paket Kiloan** (`berat × harga/kg`) dan **Barang Satuan** (multi-baris + biaya layanan), diskon persen `0–100%`, pemakaian hadiah pelanggan, kalkulasi ulang seluruh nominal di server, serta snapshot harga pada nota. Pelanggan terdaftar dipilih lewat **combobox pencarian** (default **Pelanggan umum**) yang mengisi nama dan membuka pilihan hadiah secara otomatis; beralih kembali ke **Pelanggan umum** mengosongkan nama pelanggan sebelumnya. Saat mengubah nota, hadiah terpasang dapat dilepas atau diganti tanpa harus mengganti pelanggan.
 - **Setup identitas perusahaan (admin)**: pengaturan nama dan logo (`PNG`/`JPG`/`WEBP`, maks. 2 MB) di database dan public disk, diterapkan otomatis pada sidebar, halaman login, dan invoice.
-- **Invoice A4**: hierarki informasi jelas, tabel item, ringkasan pembayaran, konversi terbilang Bahasa Indonesia otomatis, logo/nama perusahaan dinamis, serta CSS cetak A4 yang menyembunyikan navigasi.
-- **Daftar nota & ekspor CSV**: pencarian, filter jenis/tanggal, pagination server-side, dan ekspor CSV (UTF-8 BOM, terlindungi dari formula injection) sesuai filter aktif.
+- **Pilihan format cetak**: sebelum mencetak, pilih **A4 Profesional**, **Thermal 80 mm**, atau **Thermal 58 mm**. Template A4 menampilkan invoice lengkap (identitas, pelanggan, nomor, tanggal, layanan, berat/qty, harga, diskon/hadiah, status pembayaran, total, terbilang), sedangkan template thermal tampil ringkas tanpa angka atau nama terpotong. Seluruh format memakai data nota yang sama sehingga total selalu konsisten, dan CSS cetak menyembunyikan sidebar, header, tombol, serta footer.
+- **Daftar nota & ekspor Excel**: pencarian, filter jenis/status/pembayaran/tanggal, pagination server-side, dan ekspor `.xlsx` rapi sesuai filter aktif — judul perusahaan, ringkasan filter, header beku, auto-filter, baris zebra, baris total, format Rupiah/tanggal, serta tata cetak lanskap A4.
 - **UI, tema & notifikasi**: sidebar oranye hangat dengan tombol hamburger untuk menciutkan menu menjadi rail ikon di desktop (tersimpan di `localStorage`), ikon paket kiloan bergaya mesin cuci, tooltip Logout, dark mode, latar login bergradasi hangat, layout responsif, serta toast & konfirmasi hapus **SweetAlert2** bertema oranye/rose.
 - **Footer konsisten**: bar ringkas `fixed` di dasar layar pada dashboard, halaman staf, dan portal pelanggan (mengikuti lebar sidebar), footer ringkas di bawah kartu login, serta bar `fixed` pada portal pelanggan — memuat kredit pengembang, `Free to Use · Voluntary Donation`, dan hak cipta. Konstanta teks footer dipusatkan di `resources/js/lib/footer.ts`.
 - **Halaman error**: tampilan khusus untuk status `403`, `404`, `419`, `429`, `500`, dan `503`.
 
 ## Kebutuhan
 
-- PHP 8.3+ dengan ekstensi standar Laravel (`pdo_mysql`, `mbstring`, `openssl`, dll.)
+- PHP 8.3+ dengan ekstensi standar Laravel (`pdo_mysql`, `mbstring`, `openssl`, `zip`, `xmlwriter`, dll.)
 - Composer 2
 - Node.js 20+ dan npm
 - MySQL 8
@@ -88,7 +92,7 @@ npm install
 npm run build
 ```
 
-Seeder bersifat idempoten; `php artisan db:seed` dapat dijalankan ulang tanpa menggandakan data.
+Seeder bersifat idempoten. `php artisan db:seed` mengatur ulang **data transaksi demo** (nota, item nota, dan hadiah) lalu membangun ulang riwayat 6 bulan terakhir, sekaligus melengkapi data master (pengguna, kategori pelanggan, katalog, program loyalitas, dan promosi) tanpa menggandakan data.
 
 ### Email untuk Lupa Kata Sandi
 
@@ -146,13 +150,13 @@ npm run build
 
 Ringkasan hasil terakhir:
 
-- **Pengujian otomatis (24 November 2026)**: 93 test / 437 assertion lulus dalam 14,48 detik.
+- **Pengujian otomatis (27 November 2026)**: 141 test / 755 assertion lulus dalam 23,30 detik, termasuk kategori pelanggan, loyalitas, promosi, akurasi hadiah (Member & promosi semua pelanggan), integritas pembatalan, format cetak, ekspor XLSX, dan seeder demo 6 bulan.
 - **Type & Svelte check**: 0 error / 0 warning.
-- **Build produksi (25 November 2026)**: 800 modul; JS `431,59 kB` (gzip `116,97 kB`), CSS `97,20 kB` (gzip `16,59 kB` — `app.css` `67,68 kB` + `sweetalert2.min.css` `29,52 kB`), 46 route aplikasi.
+- **Build produksi (27 November 2026)**: 805 modul; JS `493,73 kB` (gzip `131,45 kB`), CSS `101,15 kB` (gzip `17,20 kB` — `app.css` `71,63 kB` + `sweetalert2.min.css` `29,52 kB`), 56 route aplikasi.
 
 Detail lengkap tersedia di [`docs/TESTING_REPORT.md`](docs/TESTING_REPORT.md).
 
-Cache alat pengembangan (`.svelte-check/`, `.phpunit.result.cache`) dibersihkan setelah pemeriksaan tanpa menyisakan file sumber yatim. File `public/hot` hanya muncul saat Vite dev server aktif.
+Cache alat pengembangan (`.svelte-check/`, `.phpunit.result.cache`), view terkompilasi, log, dan dev marker `public/hot` dibersihkan setelah pemeriksaan (27 November 2026) tanpa menyisakan file sumber yatim; semuanya dibuat ulang otomatis dan sudah masuk `.gitignore`. Build produksi di `public/build` dipertahankan.
 
 > **Catatan:** `svelte-check` memerlukan TypeScript 6 beserta alias TypeScript 7 (`@typescript/native`) sesuai `package.json`; jangan menghapus salah satunya.
 
@@ -162,20 +166,20 @@ Cache alat pengembangan (`.svelte-check/`, `.phpunit.result.cache`) dibersihkan 
 app/
 ├── Actions/Nota/          GenerateNomorNota
 ├── DTOs/                  NotaData
-├── Enums/                 JenisNota, UserRole
-├── Http/Controllers/      auth (login, lupa/reset password), dashboard, master, nota, pengaturan, akun (portal pelanggan)
+├── Enums/                 JenisNota, UserRole, KategoriPelanggan, StatusNota, StatusPembayaran, TipeHadiah, SumberHadiah, StatusHadiah
+├── Http/Controllers/      auth (login, lupa/reset password), dashboard, master, nota, loyalitas, promosi, pengaturan, akun (portal pelanggan)
 ├── Http/Middleware/       HandleInertiaRequests, EnsureStaff, EnsurePelanggan (redirect per peran)
-├── Http/Requests/         validasi + authorize per operasi
-├── Http/Resources/        bentuk props Inertia (termasuk terbilang invoice)
-├── Models/                User, Barang, Kiloan, JenisLayanan, Nota, NotaBarang, Pengaturan
+├── Http/Requests/         validasi + authorize per operasi (termasuk hadiah nota)
+├── Http/Resources/        bentuk props Inertia (termasuk terbilang, status, kategori, reward)
+├── Models/                User, Barang, Kiloan, JenisLayanan, Nota, NotaBarang, Pengaturan, LoyaltyProgram, Promotion, CustomerReward
 ├── Policies/              akses per resource
-├── Services/              NotaService, PricingCalculator, DashboardService, UserService
+├── Services/              NotaService, RewardService, PricingCalculator, DashboardService, UserService
 └── Support/               Terbilang (konversi angka ke kata Bahasa Indonesia)
 
 resources/
 ├── js/
-│   ├── Components/        AppLayout, CustomerLayout, Auth/AuthShell, Nota/NotaForm, Nota/NotaInvoice, komponen Ui
-│   ├── Pages/             Auth (login, lupa/reset), Dashboard, master, Nota, Pengaturan, Akun (portal), Error
+│   ├── Components/        AppLayout, CustomerLayout, Auth/AuthShell, Nota/NotaForm, Nota/PelangganCombobox, Nota/NotaInvoice, Nota/NotaThermal, komponen Ui
+│   ├── Pages/             Auth (login, lupa/reset), Dashboard, master, Nota, Pelanggan, Loyalitas, Promosi, Pengaturan, Akun (portal), Error
 │   └── lib/               format rupiah/tanggal, terbilang, class UI, notifikasi SweetAlert2
 └── views/pdf/nota.blade.php  template PDF A4 (dompdf)
 ```
@@ -184,16 +188,17 @@ resources/
 
 | Dokumen                                                              | Isi                                                                                    |
 | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [`CHANGELOG.md`](CHANGELOG.md)                                       | Riwayat perubahan fitur, perbaikan, dan catatan pembaruan                              |
 | [`docs/DOKUMENTASI_APLIKASI.html`](docs/DOKUMENTASI_APLIKASI.html)   | **Panduan HTML** (buka di browser): arsitektur, deploy VPS/shared hosting, fungsi menu |
 | [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)         | Arsitektur final, layer, route, otorisasi, business logic                              |
-| [`docs/DATABASE_ANALYSIS.md`](docs/DATABASE_ANALYSIS.md)             | Skema legacy vs aplikasi baru, ERD, integritas data                                    |
-| [`docs/FEATURE_INVENTORY.md`](docs/FEATURE_INVENTORY.md)             | Status setiap fitur legacy ke aplikasi baru                                            |
+| [`docs/DATABASE_ANALYSIS.md`](docs/DATABASE_ANALYSIS.md)             | Skema final, ERD, relasi, dan integritas data                                          |
+| [`docs/FEATURE_INVENTORY.md`](docs/FEATURE_INVENTORY.md)             | Daftar fitur dan status implementasi                                                   |
 | [`docs/BUSINESS_WORKFLOW.md`](docs/BUSINESS_WORKFLOW.md)             | Alur login, master, transaksi, cetak, laporan                                          |
-| [`docs/LEGACY_MIGRATION_REPORT.md`](docs/LEGACY_MIGRATION_REPORT.md) | Keputusan migrasi, perbaikan, perubahan sengaja                                        |
+| [`docs/LEGACY_MIGRATION_REPORT.md`](docs/LEGACY_MIGRATION_REPORT.md) | Arsip audit, keputusan, dan perubahan historis                                         |
 | [`docs/TESTING_REPORT.md`](docs/TESTING_REPORT.md)                   | Bukti pengujian otomatis dan walkthrough UI                                            |
 | [`docs/DEMO_CREDENTIALS.md`](docs/DEMO_CREDENTIALS.md)               | Akun demo dan ringkasan data seed                                                      |
 | [`docs/DEVELOPMENT_PROGRESS.md`](docs/DEVELOPMENT_PROGRESS.md)       | Checklist fase pengembangan                                                            |
-| [`docs/LEGACY_SYSTEM_AUDIT.md`](docs/LEGACY_SYSTEM_AUDIT.md)         | Audit aplikasi legacy (snapshot)                                                       |
+| [`docs/LEGACY_SYSTEM_AUDIT.md`](docs/LEGACY_SYSTEM_AUDIT.md)         | Arsip audit sistem (snapshot historis)                                                 |
 | [`docs/ARCHITECTURE_NOTES.md`](docs/ARCHITECTURE_NOTES.md)           | Catatan desain awal (superseded)                                                       |
 
 ## Keamanan
@@ -204,3 +209,7 @@ resources/
 - Unggahan logo pada menu Setup divalidasi tipe (`PNG`/`JPG`/`WEBP`) dan ukuran (maks. 2 MB), disimpan di public disk, serta otomatis menghapus file lama saat diganti. Hanya admin dengan izin `pengaturan.manage` yang dapat mengubahnya.
 - Portal pelanggan membatasi akses berdasarkan `pelanggan_id` akun yang login; mengakses nota atau PDF milik pelanggan lain mengembalikan `404`, dan staf akan diarahkan ke dashboard jika membuka `/akun`.
 - Aplikasi ini tidak menangani pemrosesan pembayaran; seluruh nilai transaksi berfungsi sebagai catatan operasional.
+
+## Saran & Masukan
+
+Kami sangat terbuka terhadap saran, masukan, maupun laporan kendala untuk pengembangan dan penyempurnaan aplikasi ini. Silakan kirimkan pesan Anda melalui email ke [eko.alfatindo@gmail.com](mailto:eko.alfatindo@gmail.com).

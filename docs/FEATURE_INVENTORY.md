@@ -1,7 +1,7 @@
 # FEATURE INVENTORY — Legacy → Aplikasi Baru
 
 Status legacy: **Ada / Rusak / Tidak ada**.
-Status fitur diperbarui **2026-11-24** berdasarkan implementasi dan pengujian final.
+Status fitur diperbarui **2026-11-27** berdasarkan implementasi dan pengujian final.
 
 | ID | Fitur | Lokasi Legacy | Status Legacy | Implementasi | Status |
 |---|---|---|---|---|---|
@@ -18,14 +18,14 @@ Status fitur diperbarui **2026-11-24** berdasarkan implementasi dan pengujian fi
 | F-11 | CRUD Barang Satuan | `BarangController` | Ada | CRUD; hapus master tidak menghapus nota (snapshot) | Selesai |
 | F-12 | CRUD Paket Kiloan | `KiloanController` | Ada | CRUD paket + harga/kg + deskripsi | Selesai |
 | F-13 | CRUD Jenis Layanan | `JenisLayananController` | Ada | CRUD layanan + waktu + biaya | Selesai |
-| F-14 | Nota Paket Kiloan | `NotaController@storeKiloan` | Ada | Form + `POST /nota/kiloan`, hitung server-side | Selesai |
-| F-15 | Nota Barang Satuan | `NotaController@storeSatuan` | Ada | Form multi-baris + `POST /nota/satuan`, satu transaksi | Selesai |
-| F-16 | Daftar Nota | `NotaController@index` | Ada (client-side) | Server-side pagination + cari + filter jenis/tanggal | Selesai |
-| F-17 | Detail Nota | `NotaController@show` | Ada | Halaman invoice A4 + ringkasan layar | Selesai |
-| F-18 | Cetak Nota | `ShowNota.vue` | Ada | Print CSS A4 (`.invoice-print`, `.no-print`, `@page size: A4`) | Selesai |
+| F-14 | Nota Paket Kiloan | `NotaController@storeKiloan` | Ada | Form + `POST /nota/kiloan`, hitung server-side; pelanggan terdaftar dipilih lewat combobox pencarian (default **Pelanggan umum**, beralih ke walk-in mengosongkan nama) dan divalidasi harus berperan Pelanggan | Selesai |
+| F-15 | Nota Barang Satuan | `NotaController@storeSatuan` | Ada | Form multi-baris + `POST /nota/satuan`, satu transaksi; pelanggan terdaftar dipilih lewat combobox pencarian (default **Pelanggan umum**, beralih ke walk-in mengosongkan nama) dan divalidasi harus berperan Pelanggan | Selesai |
+| F-16 | Daftar Nota | `NotaController@index` | Ada (client-side) | Server-side pagination + cari + filter jenis/tanggal/status/pembayaran | Selesai |
+| F-17 | Detail Nota | `NotaController@show` | Ada | Halaman invoice A4 + ringkasan layar + badge status/kategori + aksi Selesai/Lunas/Batal | Selesai |
+| F-18 | Cetak Nota | `ShowNota.vue` | Ada | Modal pilih format: A4 (`.invoice-print`, `@page size: A4`), thermal 80 mm, thermal 58 mm; `.no-print` | Selesai |
 | F-19 | Hapus Nota | `NotaController@destroy` | Ada | Konfirmasi + policy (admin) | Selesai |
-| F-20 | Edit Nota | `NotaController@update` | Rusak, tanpa UI | Edit header + baris, hitung ulang, snapshot baru | Selesai |
-| F-21 | Ekspor daftar nota | SheetJS `.xlsx` | Ada | CSV UTF-8 BOM + formula guard, kolom legacy + snapshot | Selesai (CSV) |
+| F-20 | Edit Nota | `NotaController@update` | Rusak, tanpa UI | Edit header + baris, hitung ulang, snapshot baru; hadiah terpasang dapat dilepas/diganti; nota **Dibatalkan** bersifat final (edit ditolak, tombol Ubah disembunyikan) | Selesai |
+| F-21 | Ekspor daftar nota | SheetJS `.xlsx` | Ada | XLSX native (Open XML, server-side): judul + ringkasan filter, header beku, auto-filter, zebra, baris total, format Rupiah/tanggal; kolom legacy + snapshot | Selesai (XLSX) |
 | F-22 | Pencarian Nota | client-side | Ada | Server-side `no_nota`/`nama_pelanggan` | Selesai |
 | F-23 | Pagination Nota | client-side 10/20/30 | Ada | Server-side 10/25/50/100 | Selesai |
 | F-24 | Grid/List & tipe tabel | `IndexNota.vue` | Ada (kosmetik) | Tidak dipertahankan; tabel responsif | Tidak dipertahankan |
@@ -40,14 +40,21 @@ Status fitur diperbarui **2026-11-24** berdasarkan implementasi dan pengujian fi
 | F-33 | Lupa & reset password | — | Tidak ada | Laravel password broker, email token sekali pakai, halaman reset terpisah | Baru (permintaan 2026-11-24) |
 | F-34 | Penyempurnaan UI | — | — | Label “Harga Per Barang”/“Harga Paket Kiloan”, ikon washer, tooltip Logout, tema login oranye selaras sidebar | Baru (permintaan 2026-11-24) |
 | F-35 | Portal pelanggan | — | Tidak ada | Pelanggan login lalu membuka `/akun`: ringkasan + daftar nota milik sendiri, detail invoice, unduh PDF; data difilter `pelanggan_id` | Baru (permintaan 2026-11-24) |
-| F-36 | PDF nota server-side | — | Tidak ada (hanya print browser) | `AkunController@pdf` + dompdf A4 (`resources/views/pdf/nota.blade.php`), nama file `nota-{no_nota}.pdf` | Baru (permintaan 2026-11-24) |
+| F-36 | PDF nota server-side | — | Tidak ada (hanya print browser) | `AkunController@pdf` + dompdf A4 (`resources/views/pdf/nota.blade.php`), nama file `nota-{no_nota}.pdf` | Baru (permintaan 2026-11-26) |
+| F-37 | Kategori pelanggan | — | Tidak ada | `users.kategori_pelanggan` (`Reguler`/`Member`) + `member_sejak`; badge, filter, dan form ubah kategori | Baru (permintaan 2026-11-26) |
+| F-38 | Detail pelanggan | — | Tidak ada | `/pelanggan/{id}`: profil, kategori, riwayat nota, progress loyalitas, dan daftar hadiah | Baru (permintaan 2026-11-26) |
+| F-39 | Program loyalitas Member | — | Tidak ada | `loyalty_programs` + `RewardService`: target transaksi Selesai, tipe/nilai hadiah, masa berlaku, aktif; hadiah otomatis per siklus | Baru (permintaan 2026-11-26) |
+| F-40 | Promosi umum | — | Tidak ada | `promotions`: target kategori, target transaksi, periode, syarat, aktif; hadiah otomatis per siklus | Baru (permintaan 2026-11-26) |
+| F-41 | Riwayat & pemakaian hadiah | — | Tidak ada | `customer_rewards` (Tersedia/Digunakan/Kedaluwarsa/Dibatalkan), sekali pakai, pemilihan hadiah pada nota, potongan otomatis | Baru (permintaan 2026-11-26) |
+| F-42 | Status nota & pembayaran | — | Tidak ada | `Diproses`/`Selesai`/`Dibatalkan` + `Belum Lunas`/`Lunas`; aksi Selesai/Lunas/Batal di detail nota; filter daftar | Baru (permintaan 2026-11-26) |
+| F-43 | Format cetak thermal 58/80 mm | — | Tidak ada (hanya A4) | Modal pilih format sebelum cetak; `NotaThermal.svelte`, `@page` dinamis, `.no-print` | Baru (permintaan 2026-11-26) |
+| F-44 | Seeder demo 6 bulan | — | Data lama lebih sedikit | 81 nota, 18 hadiah, 5 Member/5 Reguler, seluruh status, idempoten dalam satu transaksi | Baru (permintaan 2026-11-26) |
 
-## Modul yang TIDAK Ada di Legacy (tidak diimplementasikan)
+## Modul di Luar Cakupan
 
 | Modul | Keterangan |
 |---|---|
-| Pembayaran / status lunas / piutang | Tidak ada tabel/field/UI |
-| Status pengerjaan laundry | Tidak ada |
+| Gateway pembayaran / piutang | Tidak ada integrasi pembayaran; status Lunas hanya catatan operasional |
 | Pengeluaran operasional | Tidak ada |
 | Outlet / cabang | Tidak ada |
 | Laporan laba/keuntungan | Tidak ada |
@@ -55,14 +62,16 @@ Status fitur diperbarui **2026-11-24** berdasarkan implementasi dan pengujian fi
 | Manajemen stok | Tidak ada |
 | Multi-tenant / langganan | Tidak ada |
 
-Portal pelanggan tidak ada di legacy dan **diimplementasikan** pada proyek baru atas permintaan
-2026-11-24 (F-35), terbatas pada baca nota + unduh PDF milik sendiri.
+Status nota dan status pembayaran **tersedia** sebagai fitur F-42; yang tidak diimplementasikan
+adalah integrasi pembayaran/piutang. Portal pelanggan tersedia sebagai fitur F-35, terbatas pada
+baca nota + unduh PDF milik sendiri.
 
 ## Catatan Perubahan yang Disengaja
 
 1. Register publik dihapus; akun pelanggan kini dibuat admin/karyawan dan dapat masuk ke portal
    baca-saja (`/akun`), bukan ke aplikasi staf.
-2. Ekspor `.xlsx` menjadi CSV (kolom setara + snapshot, tanpa dependency SheetJS).
+2. Ekspor `.xlsx` dibuat native di server (Open XML melalui `NotaExcelExport`, tanpa dependency
+   SheetJS); kolom setara + snapshot dipertahankan dengan tata letak laporan yang rapi.
 3. Edit nota diimplementasikan benar (sebelumnya endpoint rusak).
 4. Menu Pelanggan ditambahkan (sebelumnya route/pages ada tanpa tautan).
 5. Perhitungan harga dipindah ke server (sebelumnya client).
@@ -72,3 +81,8 @@ Portal pelanggan tidak ada di legacy dan **diimplementasikan** pada proyek baru 
 9. Otorisasi ditegakkan di server (legacy hanya menyembunyikan menu di frontend).
 10. Setup identitas perusahaan ditambahkan sebagai fitur baru (legacy hardcoded); bukan perubahan
     alur bisnis, hanya sumber nama/logo untuk tampilan dan invoice.
+11. Kategori pelanggan, loyalitas Member, dan promosi menambah tabel/kolom baru tanpa mengubah
+    struktur nota lama; nota historis tetap memakai snapshot harga.
+12. Status nota/pembayaran dan ledger hadiah memakai nilai default aman (`Diproses`/`Belum Lunas`,
+    `Tersedia`) sehingga data lama tetap valid setelah migrasi.
+13. Seeder nota membangun ulang data transaksi demo 6 bulan; akun dan master data tetap idempoten.

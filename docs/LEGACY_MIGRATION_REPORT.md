@@ -23,7 +23,7 @@ Aplikasi baru: Laravel 13 + Inertia + Svelte 5 + Tailwind 4 (`D:\project\lav_sve
 | `NotaController@update` (rusak) | `@update` + `UpdateNotaRequest` + `NotaService::update` (hitung ulang, ganti baris) |
 | `NotaController@destroy` | `@destroy` + `NotaPolicy::delete`; baris cascade |
 | `NotaController@chart/@pie` | `DashboardService` (chart bulanan); endpoint pie tidak dipakai dan tidak dibuat ulang |
-| Ekspor SheetJS di browser | `NotaController@export` — CSV UTF-8 BOM, filter server-side, formula guard |
+| Ekspor SheetJS di browser | `NotaController@export` + `NotaExcelExport` — XLSX native, filter server-side, tata letak laporan |
 | Halaman Quasar + Pinia | Halaman Svelte 5 + Inertia props; state form lokal (`useForm`) |
 | Token di localStorage | Session cookie + CSRF Inertia (token tidak disimpan di JS) |
 
@@ -50,7 +50,7 @@ Aplikasi baru: Laravel 13 + Inertia + Svelte 5 + Tailwind 4 (`D:\project\lav_sve
 1. **Register publik dihapus.** Legacy membuat akun `Pelanggan` yang tidak punya halaman;
    sekarang pelanggan dibuat admin/karyawan dan dapat masuk ke portal baca-saja. → `FEATURE_INVENTORY` F-03, F-35.
 2. **Otorisasi server-side.** Legacy membuka seluruh endpoint CRUD tanpa auth dan hanya
-   menyembunyikan menu di frontend. Aplikasi baru memakai session auth + 12 permission + policy.
+   menyembunyikan menu di frontend. Aplikasi baru memakai session auth + 14 permission + policy.
 3. **Harga dihitung server-side.** Legacy menerima total/diskon dari klien; aplikasi baru mengabaikan
    nominal kiriman dan mengambil harga master saat simpan.
 4. **Snapshot harga.** Ditambahkan `harga_per_kg`, `biaya_layanan`, dan `barang/harga` per baris
@@ -60,8 +60,9 @@ Aplikasi baru: Laravel 13 + Inertia + Svelte 5 + Tailwind 4 (`D:\project\lav_sve
    baris dalam transaksi dan menghitung ulang.
 7. **Wrapper table dihapus.** `karyawans`/`pelanggans` diganti role Spatie; data identitas tetap
    di `users` (`jenis_kelamin`, `alamat`).
-8. **Ekspor CSV menggantikan XLSX.** Kolom legacy dipertahankan dan diperluas dengan snapshot
-   (berat, harga/kg, biaya layanan) agar laporan setara; tanpa dependency SheetJS.
+8. **Ekspor XLSX native menggantikan SheetJS.** Kolom legacy dipertahankan dan diperluas dengan
+   snapshot (berat, harga/kg, biaya layanan) agar laporan setara; workbook dibangun server-side
+   tanpa dependency.
 9. **Pagination & pencarian server-side** (10/25/50/100) menggantikan pemrosesan client.
 10. **Dashboard "Penjualan Terbaru"** menampilkan 6 nota terbaru (legacy menampilkan seluruh
     daftar di komponen yang sama); daftar lengkap tersedia di menu Nota.

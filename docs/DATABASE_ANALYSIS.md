@@ -167,14 +167,17 @@ snapshot historis, memperbaiki tipe uang, dan menambah index laporan.
 
 | Tabel | Perubahan dari legacy |
 |---|---|
-| `users` | `role` dihapus → Spatie roles (`admin`, `karyawan`, `pelanggan`); `jenis_kelamin`, `alamat` dipertahankan |
+| `users` | `role` dihapus → Spatie roles (`admin`, `karyawan`, `pelanggan`); `jenis_kelamin`, `alamat` dipertahankan; + `kategori_pelanggan` enum (`reguler`/`member`) dan `member_sejak` |
 | `karyawans` | **Dihapus** (redundan; karyawan = user dengan role `karyawan`) |
 | `pelanggans` | **Dihapus** (pelanggan = user dengan role `pelanggan`) |
 | `barangs` | Sama; `harga` menjadi unsigned int; index nama tetap unique |
 | `kiloans` | Sama; `harga` unsigned int |
 | `jenis_layanans` | Sama; `harga` unsigned int |
-| `notas` | + `pelanggan_id` nullable FK → users (nullOnDelete); + snapshot `harga_per_kg`, `biaya_layanan`; `berat` decimal(8,2); uang unsigned bigint; diskon 0–100; index laporan |
+| `notas` | + `pelanggan_id` nullable FK → users (nullOnDelete); + snapshot `harga_per_kg`, `biaya_layanan`; `berat` decimal(8,2); uang unsigned bigint; diskon 0–100; index laporan; + `status`, `status_pembayaran`, `dibatalkan_at`, `diskon_nominal`, `reward_label`, `customer_reward_id` |
 | `nota_barangs` | + `barang_id` nullable FK → barangs (nullOnDelete); `barang` tetap sebagai snapshot nama; uang unsigned int |
+| `loyalty_programs` | **Baru** — konfigurasi program loyalitas Member |
+| `promotions` | **Baru** — konfigurasi promosi umum (Reguler/Member) |
+| `customer_rewards` | **Baru** — ledger hadiah loyalitas & promosi per pelanggan |
 | `roles/permissions/...` | Tabel Spatie Permission |
 | `sessions`, `cache`, `jobs` | Tabel bawaan Laravel 13 (driver database) |
 
@@ -182,7 +185,9 @@ snapshot historis, memperbaiki tipe uang, dan menambah index laporan.
 
 #### `users`
 `id`, `name`, `email` (unique), `password`, `jenis_kelamin` enum nullable,
-`alamat` varchar nullable, `email_verified_at`, `remember_token`, timestamps.
+`alamat` varchar nullable, `kategori_pelanggan` varchar(20) default `Reguler`
+(nilai `Reguler`/`Member`, enum aplikasi), `member_sejak` date nullable,
+`email_verified_at`, `remember_token`, timestamps. Index `kategori_pelanggan`.
 
 #### `notas` (inti)
 | Kolom | Tipe | Keterangan |
@@ -200,11 +205,54 @@ snapshot historis, memperbaiki tipe uang, dan menambah index laporan.
 | waktu | datetime | waktu transaksi (dipakai laporan) |
 | subtotal? | — | Tidak ditambah; `total_harga` tetap bruto |
 | total_harga | unsigned bigint | bruto sebelum diskon |
-| diskon | unsigned tinyint | persen 0–100 |
-| jumlah | unsigned bigint | netto setelah diskon (dasar pendapatan) |
+| diskon | unsigned tinyint | persen 0–100; dipaksa 0 bila memakai hadiah |
+| diskon_nominal | unsigned int default 0 | potongan rupiah aktual (diskon atau hadiah) |
+| reward_label | varchar nullable | label hadiah yang dipakai |
+| customer_reward_id | bigint nullable FK customer_rewards | nullOnDelete |
+| status | varchar(20) default `Diproses` | `Diproses`/`Selesai`/`Dibatalkan` (enum aplikasi) |
+| status_pembayaran | varchar(20) default `Belum Lunas` | `Belum Lunas`/`Lunas` |
+| dibatalkan_at | datetime nullable | waktu pembatalan |
+| jumlah | unsigned bigint | netto setelah diskon/hadiah (dasar pendapatan) |
 | timestamps | | |
 
-Index: `no_nota` unique, `created_at`, `waktu`, `jenis`, `nama_pelanggan`, `pelanggan_id`.
+Index: `no_nota` unique, `created_at`, `waktu`, `jenis`, `nama_pelanggan`, `pelanggan_id`,
+`status`, `status_pembayaran`.
+
+#### `loyalty_programs`
+`id`, `nama` varchar(100), `deskripsi` text nullable, `target_transaksi` unsigned smallint,
+`tipe_hadiah` varchar(20) default `persen` (`persen`/`nominal`/`gratis`), `nilai_hadiah`
+unsigned int, `masa_berlaku_hari` unsigned smallint nullable, `is_active` boolean default true,
+timestamps. Hanya program aktif terbaru yang dipakai.
+
+#### `promotions`
+`id`, `nama` varchar(100), `deskripsi` text nullable, `syarat` text nullable,
+`target_kategori` varchar(20) nullable (`Reguler`/`Member`/null = semua), `target_transaksi`
+unsigned smallint, `tipe_hadiah` varchar(20), `nilai_hadiah` unsigned int, `mulai` date nullable,
+`selesai` date nullable, `is_active` boolean default true, timestamps. Index
+`(is_active, mulai, selesai)` dan `target_kategori`.
+
+#### `customer_rewards`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | bigint unsigned PK | |
+| reward_key | varchar(80) unique | `LOY-{program}-{user}-{siklus}` / `PRM-{promo}-{user}-{siklus}`; kunci idempotensi |
+| user_id | bigint FK users | cascadeOnDelete |
+| sumber | varchar(20) | `loyalitas` / `promosi` |
+| loyalty_program_id | bigint nullable FK loyalty_programs | nullOnDelete |
+| promotion_id | bigint nullable FK promotions | nullOnDelete |
+| siklus | unsigned smallint | siklus ke-1, 2, … |
+| label | varchar(150) | nama program/promosi |
+| tipe_hadiah | varchar(20) | `persen`/`nominal`/`gratis` |
+| nilai_hadiah | unsigned int | nilai konfigurasi |
+| status | varchar(20) default `Tersedia` | `Tersedia`/`Digunakan`/`Kedaluwarsa`/`Dibatalkan` |
+| nilai_terpakai | unsigned int default 0 | potongan rupiah saat dipakai |
+| diperoleh_at | datetime | waktu terbit |
+| kedaluwarsa_at | datetime nullable | batas pakai (loyalitas; null untuk promosi) |
+| digunakan_at | datetime nullable | waktu dipakai |
+| nota_id | bigint nullable | nota tempat hadiah dipakai (tanpa FK keras, divalidasi aplikasi) |
+| timestamps | | |
+
+Index: `(user_id, status)`, `(sumber, status)`, `nota_id`.
 
 #### `nota_barangs`
 `id`, `nota_id` FK cascade, `barang_id` nullable FK barangs nullOnDelete,
@@ -216,12 +264,16 @@ Index: `no_nota` unique, `created_at`, `waktu`, `jenis`, `nama_pelanggan`, `pela
 ```mermaid
 erDiagram
     USERS ||--o{ NOTAS : "pelanggan_id (nullable)"
+    USERS ||--o{ CUSTOMER_REWARDS : "user_id"
     USERS }o--o{ ROLES : "model_has_roles"
     ROLES }o--o{ PERMISSIONS : "role_has_permissions"
     JENIS_LAYANANS |o--o{ NOTAS : "jenis_layanan_id"
     KILOANS |o--o{ NOTAS : "kiloan_id"
     NOTAS ||--o{ NOTA_BARANGS : "nota_id"
     BARANGS |o--o{ NOTA_BARANGS : "barang_id"
+    CUSTOMER_REWARDS |o--o| NOTAS : "nota_id (pemakaian)"
+    LOYALTY_PROGRAMS |o--o{ CUSTOMER_REWARDS : "loyalty_program_id"
+    PROMOTIONS |o--o{ CUSTOMER_REWARDS : "promotion_id"
     USERS {
       bigint id PK
       string name
@@ -229,6 +281,8 @@ erDiagram
       string password
       enum jenis_kelamin
       string alamat
+      string kategori_pelanggan
+      date member_sejak
     }
     NOTAS {
       bigint id PK
@@ -244,6 +298,12 @@ erDiagram
       datetime waktu
       bigint total_harga
       tinyint diskon
+      int diskon_nominal
+      string reward_label
+      bigint customer_reward_id FK
+      string status
+      string status_pembayaran
+      datetime dibatalkan_at
       bigint jumlah
     }
     NOTA_BARANGS {
@@ -254,6 +314,41 @@ erDiagram
       int harga
       int jumlah_barang
       bigint total_harga
+    }
+    LOYALTY_PROGRAMS {
+      bigint id PK
+      string nama
+      int target_transaksi
+      string tipe_hadiah
+      int nilai_hadiah
+      int masa_berlaku_hari
+      boolean is_active
+    }
+    PROMOTIONS {
+      bigint id PK
+      string nama
+      string target_kategori
+      int target_transaksi
+      string tipe_hadiah
+      int nilai_hadiah
+      date mulai
+      date selesai
+      boolean is_active
+    }
+    CUSTOMER_REWARDS {
+      bigint id PK
+      string reward_key UK
+      bigint user_id FK
+      string sumber
+      bigint loyalty_program_id FK
+      bigint promotion_id FK
+      int siklus
+      string status
+      int nilai_terpakai
+      datetime diperoleh_at
+      datetime kedaluwarsa_at
+      datetime digunakan_at
+      bigint nota_id
     }
 ```
 
@@ -270,8 +365,24 @@ erDiagram
 7. Soft delete master tidak dipakai (legacy tidak memakainya). Master yang sudah dipakai transaksi
    tetap boleh dihapus; FK `nullOnDelete` dan snapshot pada nota menjaga riwayat tetap utuh.
 8. `pelanggan_id` boleh kosong untuk kompatibilitas transaksi walk-in.
+9. `customer_rewards.reward_key` unique + deterministik menjadi kunci idempotensi penerbitan
+   hadiah: satu hadiah per program/promosi, per pelanggan, per siklus.
+10. Penghasilan hadiah hanya dari transaksi berstatus `Selesai`; pembatalan/penghapusan transaksi
+    menurunkan hitungan dan mencabut hadiah `Tersedia` yang siklusnya tidak lagi valid
+    (`Dibatalkan`), sedangkan hadiah yang sudah dipakai tidak ditarik.
+11. Satu nota maksimal memakai satu hadiah (`customer_reward_id`); hadiah harus milik pelanggan
+    nota dan berstatus `Tersedia`. Pemakaian mengisi `status = Digunakan`, `digunakan_at`,
+    `nilai_terpakai`, dan `nota_id` dalam transaksi database yang sama dengan penyimpanan nota.
+12. `diskon` manual dipaksa 0 saat hadiah dipakai; `jumlah = total_harga − diskon_nominal`
+    (tidak negatif) sehingga tidak ada potongan berganda.
+13. Hadiah kedaluwarsa dihitung saat sinkronisasi (`kedaluwarsa_at <= now`) dan tidak dapat dipakai;
+    hadiah promosi tidak memiliki tanggal kedaluwarsa, tetapi penerbitan barunya berhenti saat
+    promosi nonaktif/keluar periode.
+14. `promotions.target_kategori` null berarti semua kategori; nilai lain dibatasi enum aplikasi
+    `Reguler`/`Member`. Kategori pelanggan disimpan di `users.kategori_pelanggan` dengan index
+    untuk filter.
 
-## 5. Verifikasi Implementasi (2026-11-24)
+## 5. Verifikasi Implementasi (2026-11-27)
 
 Skema di atas diverifikasi langsung terhadap migration dan database berjalan:
 
@@ -286,15 +397,31 @@ Skema di atas diverifikasi langsung terhadap migration dan database berjalan:
 | `2026_11_24_130003_create_jenis_layanans_table` | `jenis_layanans` |
 | `2026_11_24_130004_create_notas_table` | `notas` |
 | `2026_11_24_130005_create_nota_barangs_table` | `nota_barangs` |
+| `2026_11_26_100001_add_kategori_to_users_table` | + `users.kategori_pelanggan`, `users.member_sejak` |
+| `2026_11_26_100002_create_loyalty_programs_table` | `loyalty_programs` |
+| `2026_11_26_100003_create_promotions_table` | `promotions` |
+| `2026_11_26_100004_create_customer_rewards_table` | `customer_rewards` |
+| `2026_11_26_100005_add_status_and_reward_to_notas_table` | + `notas.status`, `status_pembayaran`, `diskon_nominal`, `reward_label`, `customer_reward_id`, `dibatalkan_at`; index status/pembayaran |
 
 Fakta yang dicek:
 
 - `notas.no_nota` varchar(20) unique; `jenis` enum dua nilai; `pelanggan_id`,
-  `jenis_layanan_id`, `kiloan_id` nullable dengan `nullOnDelete`.
-- `notas.berat` decimal(8,2); `total_harga`/`jumlah` unsigned bigint; `diskon` unsigned tinyint.
-- Index `waktu`, `jenis`, `nama_pelanggan` ada.
+  `jenis_layanan_id`, `kiloan_id` nullable dengan `nullOnDelete`; `customer_reward_id` nullable
+  `nullOnDelete`.
+- `notas.berat` decimal(8,2); `total_harga`/`jumlah` unsigned bigint; `diskon` unsigned tinyint;
+  `status`/`status_pembayaran` varchar dengan default `Diproses`/`Belum Lunas`.
+- Index `waktu`, `jenis`, `nama_pelanggan`, `status`, `status_pembayaran` ada.
 - `nota_barangs.nota_id` cascade; `barang_id` nullable `nullOnDelete`; snapshot `barang` + `harga`.
-- `users` menyimpan `jenis_kelamin` enum nullable dan `alamat`; peran ada di tabel Spatie.
-- Hasil `migrate:fresh --seed`: 15 user, 10 barang, 5 kiloan, 4 layanan, 68 nota, 63 baris nota,
-  3 role, 12 permission. `db:seed` ulang tidak mengubah jumlah (idempoten).
+- `users` menyimpan `jenis_kelamin`, `alamat`, `kategori_pelanggan` (default `Reguler`, index),
+  dan `member_sejak`; peran ada di tabel Spatie.
+- `customer_rewards.reward_key` unique; `user_id` cascade; `loyalty_program_id`/`promotion_id`
+  nullable `nullOnDelete`; index `(user_id, status)`, `(sumber, status)`, `nota_id`.
+- `promotions` memiliki index `(is_active, mulai, selesai)` dan `target_kategori`.
+- Hasil `migrate --seed` pada database baru (27 November 2026): 15 user (1 admin, 4 karyawan,
+  5 Member, 5 Reguler), 10 barang, 5 kiloan, 4 layanan, 1 program loyalitas, 3 promosi, 81 nota
+  (ID 1–81), 18 riwayat hadiah, 3 role, 14 permission. `db:seed` ulang tidak mengubah jumlah
+  nota/hadiah (idempoten).
+- Database demo `laundry_svelte` dan test `laundry_svelte_test` dibuat ulang dari nol dengan
+  `DROP DATABASE` + `CREATE DATABASE`, lalu seluruh 17 migrasi dijalankan ulang; detail baseline
+  ada di `TESTING_REPORT.md` §4.6. Database proyek lain dan database produksi tidak disentuh.
 - Test database terpisah `laundry_svelte_test` dipakai oleh PHPUnit (`RefreshDatabase`).

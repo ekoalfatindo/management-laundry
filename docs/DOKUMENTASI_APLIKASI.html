@@ -457,7 +457,7 @@
             setiap menu. Dokumen ini disusun berdasarkan kode proyek.
         </p>
         <p class="hero-meta">
-            Laravel 13 · Inertia.js · Svelte 5 · Tailwind CSS 4 · MySQL 8 — diperbarui 24 November 2026
+            Laravel 13 · Inertia.js · Svelte 5 · Tailwind CSS 4 · MySQL 8 — diperbarui 27 November 2026
         </p>
         <div class="hero-links">
             <a href="#arsitektur">Arsitektur</a>
@@ -494,6 +494,8 @@
             <li class="sub"><a href="#menu-edit">Edit &amp; hapus nota</a></li>
             <li class="sub"><a href="#menu-master">Master data</a></li>
             <li class="sub"><a href="#menu-orang">Pelanggan, karyawan, pengguna</a></li>
+            <li class="sub"><a href="#menu-loyalitas">Loyalitas</a></li>
+            <li class="sub"><a href="#menu-promosi">Promosi</a></li>
             <li class="sub"><a href="#menu-setup">Setup identitas</a></li>
             <li class="sub"><a href="#menu-portal">Portal pelanggan</a></li>
             <li class="sub"><a href="#menu-global">Fitur global</a></li>
@@ -518,15 +520,16 @@
     <h2>Ringkasan Aplikasi</h2>
     <p class="lead">
         Aplikasi laundry untuk mencatat transaksi, mengelola pelanggan dan staf, mengatur katalog
-        layanan, menerbitkan invoice A4 dengan terbilang, mengelola identitas perusahaan, serta
-        memantau pendapatan. Pelanggan memiliki portal untuk melihat nota miliknya dan mengunduh PDF.
+        layanan, menerbitkan invoice A4 maupun struk thermal, menjalankan program loyalitas dan
+        promosi, mengelola identitas perusahaan, serta memantau pendapatan. Pelanggan memiliki
+        portal untuk melihat nota miliknya dan mengunduh PDF.
     </p>
 
     <div class="grid grid-4">
-        <div class="kpi"><b>9</b><span>menu staf di sidebar (termasuk Setup)</span></div>
+        <div class="kpi"><b>11</b><span>menu staf di sidebar (termasuk Loyalitas, Promosi, Setup)</span></div>
         <div class="kpi"><b>3</b><span>peran: admin, karyawan, pelanggan</span></div>
-        <div class="kpi"><b>12</b><span>permission Spatie</span></div>
-        <div class="kpi"><b>8</b><span>tabel domain utama</span></div>
+        <div class="kpi"><b>14</b><span>permission Spatie</span></div>
+        <div class="kpi"><b>10</b><span>tabel domain utama</span></div>
     </div>
 
     <div class="grid grid-2" style="margin-top:14px">
@@ -536,22 +539,23 @@
                 <li>Login untuk staf dan pelanggan; staf masuk ke dashboard, pelanggan ke portal <code>/akun</code>.</li>
                 <li>Lupa kata sandi via email dengan token reset sekali pakai.</li>
                 <li>Dashboard KPI, grafik pendapatan 12 bulan, dan nota terbaru.</li>
-                <li>CRUD pengguna, karyawan, pelanggan, barang satuan, paket kiloan, jenis layanan.</li>
+                <li>CRUD pengguna, karyawan, pelanggan (dengan kategori Reguler/Member), barang satuan, paket kiloan, jenis layanan.</li>
                 <li>Nota <strong>Paket Kiloan</strong> (berat × harga/kg) dan <strong>Barang Satuan</strong> (multi-baris + biaya layanan).</li>
+                <li>Status nota <strong>Diproses/Selesai/Dibatalkan</strong> dan pembayaran <strong>Belum Lunas/Lunas</strong>.</li>
                 <li>Diskon persen, perhitungan ulang di server, snapshot harga pada nota.</li>
-                <li>Invoice A4 profesional dengan logo/nama perusahaan, terbilang Indonesia, dan cetak bersih.</li>
+                <li>Program loyalitas Member dan promosi umum dengan hadiah otomatis sekali pakai.</li>
+                <li>Invoice A4 profesional dengan terbilang Indonesia, serta struk thermal 58/80 mm.</li>
                 <li>Portal pelanggan: ringkasan + daftar nota sendiri, detail invoice, dan unduh PDF A4.</li>
                 <li>Setup identitas perusahaan (nama + logo) yang dipakai di sidebar, login, dan invoice.</li>
-                <li>Pencarian, filter, pagination server-side, ekspor CSV.</li>
+                <li>Pencarian, filter status/pembayaran, pagination server-side, ekspor Excel (.xlsx) rapi.</li>
                 <li>Dark mode, layout responsif, halaman error 403/404/419/429/500/503.</li>
             </ul>
         </div>
         <div class="card">
             <h4>Yang sengaja tidak ada</h4>
-            <p class="small muted">Tidak dibuat karena tidak ditemukan pada aplikasi legacy:</p>
+            <p class="small muted">Di luar cakupan operasional aplikasi ini:</p>
             <ul class="small">
-                <li>Pembayaran, status lunas, dan piutang.</li>
-                <li>Status pengerjaan laundry.</li>
+                <li>Gateway pembayaran dan piutang (status Lunas hanya catatan operasional).</li>
                 <li>Pengeluaran operasional dan laporan laba.</li>
                 <li>Outlet/cabang, stok, multi-gudang.</li>
                 <li>Register publik, multi-tenant.</li>
@@ -583,11 +587,11 @@
                 <tr><td>Frontend</td><td>Svelte 5 (runes) + TypeScript</td><td>Tanpa Vue.js. State lokal memakai <code>$state</code>/<code>$derived</code>.</td></tr>
                 <tr><td>Styling</td><td>Tailwind CSS 4 + Vite 8</td><td>Build aset ke <code>public/build</code>.</td></tr>
                 <tr><td>Notifikasi</td><td>SweetAlert2 11</td><td>Dialog konfirmasi hapus dan toast sukses/gagal dengan tema oranye/rose (mode terang &amp; gelap).</td></tr>
-                <tr><td>Auth &amp; RBAC</td><td>Session auth + spatie/laravel-permission 8.5</td><td>3 role, 12 permission, middleware <code>permission:*</code> untuk staf dan <code>pelanggan</code> untuk portal; reset password memakai password broker Laravel.</td></tr>
+                <tr><td>Auth &amp; RBAC</td><td>Session auth + spatie/laravel-permission 8.5</td><td>3 role, 14 permission, middleware <code>permission:*</code> untuk staf dan <code>pelanggan</code> untuk portal; reset password memakai password broker Laravel.</td></tr>
                 <tr><td>PDF</td><td>dompdf 3.1</td><td>Invoice nota A4 dibuat di server dari <code>resources/views/pdf/nota.blade.php</code>.</td></tr>
                 <tr><td>Database</td><td>MySQL 8 (InnoDB, utf8mb4)</td><td>Uang disimpan sebagai integer rupiah; berat <code>decimal(8,2)</code>.</td></tr>
                 <tr><td>Storage</td><td>Laravel public disk</td><td>Logo perusahaan di <code>storage/app/public/logos</code> dengan symlink <code>public/storage</code>.</td></tr>
-                <tr><td>Testing</td><td>PHPUnit 12 + svelte-check</td><td>93 test, database test terpisah <code>laundry_svelte_test</code>.</td></tr>
+                <tr><td>Testing</td><td>PHPUnit 12 + svelte-check</td><td>141 test / 755 assertion, database test terpisah <code>laundry_svelte_test</code>.</td></tr>
             </tbody>
         </table>
     </div>
@@ -619,7 +623,9 @@
 <pre><code>app/
 ├── Actions/Nota/GenerateNomorNota.php
 ├── DTOs/NotaData.php
-├── Enums/JenisNota.php, UserRole.php
+├── Enums/ JenisNota, UserRole, KategoriPelanggan,
+│          StatusNota, StatusPembayaran, StatusHadiah,
+│          SumberHadiah, TipeHadiah
 ├── Exceptions/DomainException.php
 ├── Http/
 │   ├── Controllers/
@@ -629,7 +635,9 @@
 │   │   ├── DashboardController.php
 │   │   ├── UserController.php
 │   │   ├── KaryawanController.php
-│   │   ├── PelangganController.php
+│   │   ├── PelangganController.php    index/show/store/update/destroy
+│   │   ├── LoyaltyProgramController.php  edit/update
+│   │   ├── PromotionController.php    index/store/update/destroy
 │   │   ├── BarangController.php
 │   │   ├── KiloanController.php
 │   │   ├── JenisLayananController.php
@@ -640,18 +648,19 @@
 │   │   ├── HandleInertiaRequests.php
 │   │   ├── EnsureStaff.php           pelanggan → /akun
 │   │   └── EnsurePelanggan.php       staf → dashboard
-│   ├── Requests/        validasi + authorize()
+│   ├── Requests/        validasi + authorize() (termasuk hadiah nota)
 │   └── Resources/       Nota, NotaBarang, User
-├── Models/              User, Barang, Kiloan,
-│                        JenisLayanan, Nota, NotaBarang,
-│                        Pengaturan
+├── Models/              User, Barang, Kiloan, JenisLayanan,
+│                        Nota, NotaBarang, Pengaturan,
+│                        LoyaltyProgram, Promotion, CustomerReward
 ├── Policies/            per resource
 ├── Providers/AppServiceProvider.php
 ├── Support/Terbilang.php  angka → kata (invoice)
 └── Services/
     ├── DashboardService.php
-    ├── NotaService.php
-    ├── PricingCalculator.php
+    ├── NotaService.php          create/update/delete/complete/cancel
+    ├── PricingCalculator.php    kiloan, satuan, potonganHadiah
+    ├── RewardService.php        ledger loyalitas & promosi
     └── UserService.php</code></pre>
             </div>
         </div>
@@ -674,7 +683,9 @@
 │   ├── CustomerLayout.svelte  header portal pelanggan
 │   ├── Auth/AuthShell.svelte
 │   ├── Nota/NotaForm.svelte
+│   ├── Nota/PelangganCombobox.svelte  combobox pencarian pelanggan (default Pelanggan umum)
 │   ├── Nota/NotaInvoice.svelte  invoice A4 (staf & portal)
+│   ├── Nota/NotaThermal.svelte  struk thermal 58/80 mm
 │   └── Ui/                 Button, Modal, Badge,
 │                           Pagination, StatCard, AppFooter,
 │                           MonthlyChart, Icon, ...
@@ -688,7 +699,10 @@
     ├── Error.svelte
     ├── Users/Index.svelte
     ├── Karyawan/Index.svelte
-    ├── Pelanggan/Index.svelte
+    ├── Pelanggan/Index.svelte  kategori + badge + filter
+    ├── Pelanggan/Show.svelte   profil, riwayat, progress loyalitas
+    ├── Loyalitas/Index.svelte  konfigurasi program loyalitas
+    ├── Promosi/Index.svelte    CRUD promosi
     ├── Barang/Index.svelte
     ├── Kiloan/Index.svelte
     ├── JenisLayanan/Index.svelte
@@ -711,12 +725,12 @@ resources/views/pdf/nota.blade.php  template PDF A4 (dompdf)</code></pre>
                 <tr><td>Route</td><td>Menentukan URL serta middleware <code>auth</code>/<code>guest</code>/<code>permission:*</code>.</td></tr>
                 <tr><td>Controller</td><td>Validasi melalui FormRequest, memanggil service, mengembalikan response Inertia atau redirect + flash.</td></tr>
                 <tr><td>FormRequest</td><td>Aturan validasi dan <code>authorize()</code> berbasis permission/policy.</td></tr>
-                <tr><td>Service</td><td>Aturan bisnis, perhitungan harga, transaksi database, konsistensi snapshot.</td></tr>
+                <tr><td>Service</td><td>Aturan bisnis, perhitungan harga, transaksi database, konsistensi snapshot, serta sinkronisasi ledger hadiah.</td></tr>
                 <tr><td>Action</td><td>Operasi spesifik: pembuatan nomor nota unik dengan retry.</td></tr>
                 <tr><td>DTO</td><td>Membawa payload tervalidasi ke service tanpa bergantung pada request HTTP.</td></tr>
                 <tr><td>Policy</td><td>Otorisasi per record (contoh: hapus nota khusus admin).</td></tr>
                 <tr><td>Resource</td><td>Menyusun bentuk data yang dikirim ke props Inertia.</td></tr>
-                <tr><td>Enum</td><td>Nilai domain tetap: jenis nota dan role pengguna.</td></tr>
+                <tr><td>Enum</td><td>Nilai domain tetap: jenis nota, role, kategori pelanggan, status nota/pembayaran, dan status/tipe/sumber hadiah.</td></tr>
             </tbody>
         </table>
     </div>
@@ -758,15 +772,21 @@ resources/views/pdf/nota.blade.php  template PDF A4 (dompdf)</code></pre>
                 <tr><td>GET</td><td><code>/akun/nota/{nota}/pdf</code></td><td><code>akun.nota.pdf</code></td><td><code>pelanggan</code></td><td>Unduh PDF nota milik sendiri.</td></tr>
                 <tr><td>GET/POST/PUT/DELETE</td><td><code>/users...</code></td><td><code>users.*</code></td><td><code>users.manage</code></td><td>CRUD semua pengguna.</td></tr>
                 <tr><td>GET/POST/PUT/DELETE</td><td><code>/karyawan...</code></td><td><code>karyawan.*</code></td><td><code>karyawan.manage</code></td><td>CRUD akun role karyawan.</td></tr>
-                <tr><td>GET/POST/PUT/DELETE</td><td><code>/pelanggan...</code></td><td><code>pelanggan.*</code></td><td><code>pelanggan.manage</code></td><td>CRUD akun role pelanggan.</td></tr>
+                <tr><td>GET/POST/PUT/DELETE</td><td><code>/pelanggan...</code></td><td><code>pelanggan.*</code></td><td><code>pelanggan.manage</code></td><td>CRUD akun pelanggan + kategori.</td></tr>
+                <tr><td>GET</td><td><code>/pelanggan/{user}</code></td><td><code>pelanggan.show</code></td><td><code>pelanggan.manage</code></td><td>Detail pelanggan, riwayat nota, progress loyalitas.</td></tr>
+                <tr><td>GET/PUT</td><td><code>/loyalitas</code></td><td><code>loyalitas.edit/update</code></td><td><code>loyalitas.manage</code></td><td>Konfigurasi program loyalitas Member.</td></tr>
+                <tr><td>GET/POST/PUT/DELETE</td><td><code>/promosi...</code></td><td><code>promosi.*</code></td><td><code>promosi.manage</code></td><td>CRUD promosi umum.</td></tr>
                 <tr><td>GET</td><td><code>/barang</code>, <code>/kiloan</code>, <code>/jenis-layanan</code></td><td><code>*.index</code></td><td><code>katalog.view</code></td><td>Daftar master data.</td></tr>
                 <tr><td>POST/PUT/DELETE</td><td><code>/barang...</code>, <code>/kiloan...</code>, <code>/jenis-layanan...</code></td><td><code>*.store/update/destroy</code></td><td><code>katalog.manage</code></td><td>Ubah master data.</td></tr>
                 <tr><td>GET</td><td><code>/nota</code></td><td><code>nota.index</code></td><td><code>nota.view</code></td><td>Daftar &amp; filter nota.</td></tr>
-                <tr><td>GET</td><td><code>/nota/export</code></td><td><code>nota.export</code></td><td><code>nota.export</code></td><td>Unduh CSV sesuai filter.</td></tr>
+                <tr><td>GET</td><td><code>/nota/export</code></td><td><code>nota.export</code></td><td><code>nota.export</code></td><td>Unduh laporan Excel (.xlsx) sesuai filter.</td></tr>
                 <tr><td>GET</td><td><code>/nota/create</code></td><td><code>nota.create</code></td><td><code>nota.create</code></td><td>Form nota baru.</td></tr>
                 <tr><td>POST</td><td><code>/nota/kiloan</code></td><td><code>nota.kiloan.store</code></td><td><code>nota.create</code></td><td>Simpan nota kiloan.</td></tr>
                 <tr><td>POST</td><td><code>/nota/satuan</code></td><td><code>nota.satuan.store</code></td><td><code>nota.create</code></td><td>Simpan nota satuan.</td></tr>
-                <tr><td>GET</td><td><code>/nota/{nota}</code></td><td><code>nota.show</code></td><td><code>nota.view</code></td><td>Detail + invoice cetak.</td></tr>
+                <tr><td>GET</td><td><code>/nota/{nota}</code></td><td><code>nota.show</code></td><td><code>nota.view</code></td><td>Detail + invoice/struk cetak.</td></tr>
+                <tr><td>POST</td><td><code>/nota/{nota}/selesai</code></td><td><code>nota.complete</code></td><td><code>nota.update</code></td><td>Tandai nota Selesai (memicu hadiah).</td></tr>
+                <tr><td>POST</td><td><code>/nota/{nota}/batal</code></td><td><code>nota.cancel</code></td><td><code>nota.update</code></td><td>Batalkan nota + lepas hadiah.</td></tr>
+                <tr><td>PATCH</td><td><code>/nota/{nota}/pembayaran</code></td><td><code>nota.pembayaran</code></td><td><code>nota.update</code></td><td>Ubah status Lunas/Belum Lunas.</td></tr>
                 <tr><td>GET</td><td><code>/nota/{nota}/edit</code></td><td><code>nota.edit</code></td><td><code>nota.update</code></td><td>Form edit nota.</td></tr>
                 <tr><td>PUT</td><td><code>/nota/{nota}</code></td><td><code>nota.update</code></td><td><code>nota.update</code></td><td>Simpan perubahan nota.</td></tr>
                 <tr><td>DELETE</td><td><code>/nota/{nota}</code></td><td><code>nota.destroy</code></td><td><code>nota.delete</code></td><td>Hapus nota + barisnya.</td></tr>
@@ -793,7 +813,9 @@ resources/views/pdf/nota.blade.php  template PDF A4 (dompdf)</code></pre>
                 <tr><td><code>nota.create</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Buat nota kiloan/satuan.</td></tr>
                 <tr><td><code>nota.update</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Edit nota.</td></tr>
                 <tr><td><code>nota.delete</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td>Hapus nota.</td></tr>
-                <tr><td><code>nota.export</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Ekspor CSV.</td></tr>
+                <tr><td><code>nota.export</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td>Ekspor Excel.</td></tr>
+                <tr><td><code>loyalitas.manage</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td>Program loyalitas Member.</td></tr>
+                <tr><td><code>promosi.manage</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td>Promosi umum.</td></tr>
                 <tr><td><code>pengaturan.manage</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td>Setup nama dan logo perusahaan.</td></tr>
             </tbody>
         </table>
@@ -832,31 +854,55 @@ jumlah    = total - potongan</code></pre>
         </div>
     </div>
 
+    <div class="card" style="margin-top:14px">
+        <h4>Potongan hadiah (loyalitas/promosi)</h4>
+        <div class="code">
+            <button type="button" onclick="copyCode(this)">Salin</button>
+<pre><code>persen  = round(total × min(100, nilai) / 100)
+nominal = min(total, nilai)
+gratis  = nilai &gt; 0 ? min(total, nilai) : total
+jumlah  = max(0, total_harga - potongan)</code></pre>
+        </div>
+        <p class="small muted">
+            Saat hadiah dipakai, diskon manual dipaksa 0 dan hanya satu hadiah boleh dipakai per nota.
+            <code>diskon_nominal</code> menyimpan potongan sebenarnya; hadiah ditandai
+            <strong>Digunakan</strong> dengan <code>nota_id</code> dan <code>nilai_terpakai</code>.
+        </p>
+    </div>
+
     <ul>
         <li><strong>Server adalah sumber kebenaran.</strong> Pratinjau total di form hanya bantuan UI; server menghitung ulang saat menyimpan.</li>
         <li><strong>Snapshot harga.</strong> <code>notas.harga_per_kg</code>, <code>notas.biaya_layanan</code>, dan <code>nota_barangs.barang</code>/<code>harga</code> menyimpan nilai saat transaksi.</li>
         <li><strong>Hapus master tidak menghapus riwayat.</strong> Foreign key master memakai <code>nullOnDelete</code>; nota tetap menampilkan snapshot.</li>
         <li><strong>Nomor nota.</strong> Format <code>#</code> + 3 huruf kapital + 3 karakter alfanumerik, unik, dengan retry maksimal 20 kali.</li>
-        <li><strong>Transaksi database.</strong> Pembuatan dan pembaruan nota membungkus header + baris dalam satu transaksi.</li>
-        <li><strong>Diskon.</strong> Dibatasi 0–100 di server meskipun input form juga dibatasi.</li>
-        <li><strong>Edit nota.</strong> Menghitung ulang nominal dari master saat ini dan mengganti seluruh baris satuan.</li>
+        <li><strong>Transaksi database.</strong> Pembuatan/pembaruan nota, perubahan status, dan pemakaian hadiah dibungkus dalam satu transaksi.</li>
+        <li><strong>Diskon.</strong> Dibatasi 0–100 di server meskipun input form juga dibatasi; dipaksa 0 bila memakai hadiah.</li>
+        <li><strong>Edit nota.</strong> Melepas hadiah lama, menghitung ulang nominal dari master saat ini, mengganti baris satuan, lalu menerapkan kembali hadiah pilihan.</li>
+        <li><strong>Status nota.</strong> <code>Diproses</code> → <code>Selesai</code> atau <code>Dibatalkan</code>. Hanya <strong>Selesai</strong> yang dihitung untuk loyalitas/promosi. Nota batal tidak dapat diselesaikan.</li>
+        <li><strong>Hadiah sekali pakai.</strong> Hadiah harus milik pelanggan pada nota dan berstatus <code>Tersedia</code>; setelah dipakai tidak dapat dipakai lagi. Pembatalan nota melepas hadiah, tetapi ditolak bila hadiah dari transaksi sumber sudah dikonsumsi nota lain.</li>
+        <li><strong>Penerbitan hadiah.</strong> Loyalitas: target transaksi Selesai untuk pelanggan Member. Promosi: target transaksi dalam periode untuk kategori sasaran. <code>reward_key</code> deterministik menjamin satu hadiah per siklus.</li>
+        <li><strong>Kedaluwarsa.</strong> Hadiah loyalitas memiliki masa berlaku hari; hadiah promosi mengikuti periode penerbitan (tanpa tanggal kedaluwarsa terpisah). Hadiah kedaluwarsa tidak dapat dipilih.</li>
         <li><strong>Terbilang.</strong> Total akhir dikonversi otomatis ke kata Bahasa Indonesia dengan akhiran “rupiah” (contoh: Rp125.000 → “Seratus dua puluh lima ribu rupiah”). Nilai resmi dihitung di server melalui <code>App\Support\Terbilang</code>; form memakai implementasi TypeScript yang sama untuk pratinjau.</li>
         <li><strong>Identitas perusahaan.</strong> Satu baris tabel <code>pengaturan</code> menyimpan nama dan path logo; nilai ini dibagikan ke seluruh halaman melalui Inertia dan dipakai pada sidebar, halaman login, serta kop invoice.</li>
+        <li><strong>Format cetak.</strong> Pengguna memilih A4 atau thermal 58/80 mm sebelum mencetak; media cetak menyembunyikan navigasi, tombol, dan modal.</li>
         <li><strong>Pagination.</strong> Semua daftar memakai pagination server-side dengan pilihan 10/25/50/100 baris.</li>
     </ul>
 
     <h3 id="database">1.7 Database</h3>
-    <p>Delapan tabel domain ditambah tabel pendukung Laravel/Spatie.</p>
+    <p>Sepuluh tabel domain ditambah tabel pendukung Laravel/Spatie.</p>
     <div class="table-wrap">
         <table>
             <thead><tr><th>Tabel</th><th>Kolom penting</th><th>Relasi / catatan</th></tr></thead>
             <tbody>
-                <tr><td><code>users</code></td><td><code>name</code>, <code>email</code> unik, <code>jenis_kelamin</code>, <code>alamat</code>, <code>password</code></td><td>Menyimpan admin, karyawan, dan pelanggan. Role melalui Spatie.</td></tr>
+                <tr><td><code>users</code></td><td><code>name</code>, <code>email</code> unik, <code>jenis_kelamin</code>, <code>alamat</code>, <code>kategori_pelanggan</code>, <code>member_sejak</code>, <code>password</code></td><td>Menyimpan admin, karyawan, dan pelanggan. Role melalui Spatie; kategori Reguler/Member + tanggal member.</td></tr>
                 <tr><td><code>barangs</code></td><td><code>name</code> unik, <code>harga</code></td><td>Barang satuan; dipakai baris nota.</td></tr>
                 <tr><td><code>kiloans</code></td><td><code>paket</code>, <code>harga</code>, <code>description</code></td><td>Paket kiloan; harga per kilogram.</td></tr>
                 <tr><td><code>jenis_layanans</code></td><td><code>jenis_cuci</code> unik, <code>waktu</code>, <code>harga</code></td><td>Layanan nota satuan; <code>harga</code> = biaya layanan.</td></tr>
-                <tr><td><code>notas</code></td><td><code>no_nota</code> unik, <code>jenis</code>, <code>pelanggan_id</code>, <code>nama_pelanggan</code>, <code>kiloan_id</code>, <code>jenis_layanan_id</code>, <code>berat</code>, <code>harga_per_kg</code>, <code>biaya_layanan</code>, <code>waktu</code>, <code>total_harga</code>, <code>diskon</code>, <code>jumlah</code></td><td>Header nota. Index pada <code>waktu</code>, <code>jenis</code>, <code>nama_pelanggan</code>.</td></tr>
+                <tr><td><code>notas</code></td><td><code>no_nota</code> unik, <code>jenis</code>, <code>pelanggan_id</code>, <code>nama_pelanggan</code>, <code>kiloan_id</code>, <code>jenis_layanan_id</code>, <code>berat</code>, <code>harga_per_kg</code>, <code>biaya_layanan</code>, <code>waktu</code>, <code>total_harga</code>, <code>diskon</code>, <code>diskon_nominal</code>, <code>reward_label</code>, <code>customer_reward_id</code>, <code>status</code>, <code>status_pembayaran</code>, <code>dibatalkan_at</code>, <code>jumlah</code></td><td>Header nota. Index pada <code>waktu</code>, <code>jenis</code>, <code>nama_pelanggan</code>, <code>status</code>, <code>status_pembayaran</code>.</td></tr>
                 <tr><td><code>nota_barangs</code></td><td><code>nota_id</code>, <code>barang_id</code>, <code>barang</code>, <code>harga</code>, <code>jumlah_barang</code>, <code>total_harga</code></td><td><code>nota_id</code> cascade delete; <code>barang_id</code> nullable <code>nullOnDelete</code>.</td></tr>
+                <tr><td><code>loyalty_programs</code></td><td><code>nama</code>, <code>target_transaksi</code>, <code>tipe_hadiah</code>, <code>nilai_hadiah</code>, <code>masa_berlaku_hari</code>, <code>is_active</code></td><td>Program loyalitas Member; hanya program aktif terbaru yang dipakai.</td></tr>
+                <tr><td><code>promotions</code></td><td><code>nama</code>, <code>target_kategori</code>, <code>target_transaksi</code>, <code>tipe_hadiah</code>, <code>nilai_hadiah</code>, <code>mulai</code>, <code>selesai</code>, <code>is_active</code>, <code>syarat</code></td><td>Promosi umum untuk Reguler/Member/semua, dibatasi periode dan status aktif.</td></tr>
+                <tr><td><code>customer_rewards</code></td><td><code>reward_key</code> unik, <code>user_id</code>, <code>sumber</code>, <code>loyalty_program_id</code>, <code>promotion_id</code>, <code>siklus</code>, <code>tipe_hadiah</code>, <code>nilai_hadiah</code>, <code>status</code>, <code>nilai_terpakai</code>, <code>diperoleh_at</code>, <code>kedaluwarsa_at</code>, <code>digunakan_at</code>, <code>nota_id</code></td><td>Ledger hadiah sekali pakai; <code>reward_key</code> deterministik mencegah duplikasi.</td></tr>
                 <tr><td><code>pengaturan</code></td><td><code>nama_perusahaan</code>, <code>logo_path</code> nullable</td><td>Satu baris identitas perusahaan; logo disimpan di public disk.</td></tr>
                 <tr><td><code>roles</code>, <code>permissions</code>, <code>model_has_roles</code>, <code>model_has_permissions</code>, <code>role_has_permissions</code></td><td>—</td><td>Tabel Spatie Permission.</td></tr>
                 <tr><td><code>sessions</code>, <code>cache</code>, <code>cache_locks</code>, <code>jobs</code>, <code>job_batches</code>, <code>failed_jobs</code>, <code>password_reset_tokens</code></td><td>—</td><td>Pendukung Laravel. <code>password_reset_tokens</code> dipakai alur lupa password; antrean job tidak dipakai.</td></tr>
@@ -868,6 +914,7 @@ jumlah    = total - potongan</code></pre>
         <h4>Relasi ringkas</h4>
         <ul class="small">
             <li><code>users</code> 1 — N <code>notas</code> melalui <code>pelanggan_id</code> (opsional; pelanggan umum tetap punya <code>nama_pelanggan</code>).</li>
+            <li><code>users</code> 1 — N <code>customer_rewards</code>; hadiah menunjuk ke program/promosi asal dan ke nota tempat dipakai.</li>
             <li><code>notas</code> 1 — N <code>nota_barangs</code>; menghapus nota menghapus barisnya.</li>
             <li><code>barangs</code> 1 — N <code>nota_barangs</code> (opsional; snapshot tetap ada bila barang dihapus).</li>
             <li><code>kiloans</code> 1 — N <code>notas</code> dan <code>jenis_layanans</code> 1 — N <code>notas</code> (opsional, <code>nullOnDelete</code>).</li>
@@ -881,7 +928,7 @@ jumlah    = total - potongan</code></pre>
         <li>Seluruh input divalidasi FormRequest; harga tidak pernah dipercaya dari klien.</li>
         <li>Logo perusahaan divalidasi sebagai gambar PNG/JPG/JPEG/WEBP maksimal 2 MB; file lama dihapus saat diganti; akses ubah dibatasi permission <code>pengaturan.manage</code>.</li>
         <li>Mass assignment dibatasi atribut <code>#[Fillable]</code>; data pengguna di-escape oleh Svelte.</li>
-        <li>Ekspor CSV memakai BOM UTF-8 dan mencegah formula injection (<code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>).</li>
+        <li>Ekspor Excel menulis seluruh teks sebagai <code>inlineStr</code>, sehingga nilai seperti <code>=</code>, <code>+</code>, <code>-</code>, atau <code>@</code> tidak dieksekusi sebagai formula.</li>
         <li>Portal pelanggan memfilter nota/PDF dengan <code>pelanggan_id</code> akun login; membuka data pelanggan lain menghasilkan 404 dan staf dialihkan dari <code>/akun</code>.</li>
         <li>Kredensial demo hanya untuk lokal; <code>.env</code> tidak boleh ikut ter-upload ke repositori publik.</li>
     </ul>
@@ -906,6 +953,8 @@ jumlah    = total - potongan</code></pre>
                 <tr><td>Master Data</td><td>Jenis Layanan</td><td><code>/jenis-layanan</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td></tr>
                 <tr><td>Manajemen</td><td>Karyawan</td><td><code>/karyawan</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td></tr>
                 <tr><td>Manajemen</td><td>Pelanggan</td><td><code>/pelanggan</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Manajemen</td><td>Loyalitas</td><td><code>/loyalitas</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td></tr>
+                <tr><td>Manajemen</td><td>Promosi</td><td><code>/promosi</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td></tr>
                 <tr><td>Manajemen</td><td>Pengguna</td><td><code>/users</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td></tr>
                 <tr><td>Manajemen</td><td>Setup</td><td><code>/pengaturan</code></td><td><span class="pill yes">Ya</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td></tr>
                 <tr><td>Portal</td><td>Akun Saya</td><td><code>/akun</code></td><td><span class="pill no">Tidak</span></td><td><span class="pill no">Tidak</span></td><td><span class="pill yes">Ya</span></td></tr>
@@ -946,6 +995,8 @@ jumlah    = total - potongan</code></pre>
                 <ul class="small">
                     <li>Pencarian teks pada <strong>nomor nota</strong> atau <strong>nama pelanggan</strong>.</li>
                     <li>Filter jenis: semua, Barang Satuan, atau Paket Kiloan.</li>
+                    <li>Filter status: semua, Diproses, Selesai, atau Dibatalkan.</li>
+                    <li>Filter pembayaran: semua, Belum Lunas, atau Lunas.</li>
                     <li>Rentang tanggal <em>dari</em> dan <em>sampai</em> (tanggal kosong = tanpa batas).</li>
                     <li>Jumlah baris per halaman: 10, 25, 50, atau 100.</li>
                     <li>Tombol <strong>Terapkan</strong> dan <strong>Reset</strong>.</li>
@@ -957,22 +1008,26 @@ jumlah    = total - potongan</code></pre>
                     <li><strong>Lihat</strong> (ikon mata) → detail nota.</li>
                     <li><strong>Ubah</strong> (ikon pensil) hanya jika punya <code>nota.update</code>.</li>
                     <li><strong>Hapus</strong> (ikon tempat sampah) hanya admin (<code>nota.delete</code>), dengan dialog konfirmasi.</li>
-                    <li><strong>Ekspor CSV</strong> mengikuti filter aktif.</li>
+                    <li><strong>Ekspor Excel</strong> mengikuti filter aktif.</li>
                     <li><strong>Buat Nota</strong> jika punya <code>nota.create</code>.</li>
                 </ul>
             </div>
         </div>
-        <h4>Ekspor CSV</h4>
+        <h4>Ekspor Excel</h4>
         <p class="small">
-            Nama berkas <code>laporan-nota-YYYYMMDD-HHMMSS.csv</code>, UTF-8 dengan BOM agar rapi di Excel.
-            Urutan baris kronologis. Kolom:
+            Nama berkas <code>laporan-nota-YYYYMMDD-HHMMSS.xlsx</code>. Sheet <code>Laporan Nota</code>
+            memuat judul perusahaan, waktu cetak, jumlah nota, dan ringkasan filter aktif; header
+            dibekukan, auto-filter aktif, dan baris <strong>TOTAL</strong> menjumlahkan berat, total
+            harga, serta jumlah. Urutan baris kronologis. Kolom:
         </p>
         <p class="small">
             <code>No Nota</code>, <code>Jenis</code>, <code>Nama Pelanggan</code>, <code>Layanan</code>,
             <code>Waktu</code>, <code>Berat (kg)</code>, <code>Harga per kg</code>, <code>Biaya Layanan</code>,
-            <code>Total Harga</code>, <code>Diskon (%)</code>, <code>Jumlah</code>.
+            <code>Total Harga</code>, <code>Diskon (%)</code>, <code>Jumlah</code>, <code>Status</code>,
+            <code>Pembayaran</code>.
         </p>
-        <p class="small muted">Teks yang dimulai dengan <code>=</code>, <code>+</code>, <code>-</code>, atau <code>@</code> diberi awalan apostrof untuk mencegah formula injection.</p>
+        <p class="small muted">Angka memakai format Rupiah <code>"Rp" #,##0</code>, tanggal <code>dd/mm/yyyy hh:mm</code>, dan pengaturan cetak lanskap A4 fit-to-width. Teks ditulis sebagai <code>inlineStr</code> sehingga tidak dieksekusi sebagai formula.</p>
+        <p class="small">Pada tabel aplikasi, setiap baris juga menampilkan badge jenis nota (teal), status nota, status pembayaran, dan label hadiah bila ada.</p>
     </div>
 
     <div class="card menu-card" id="menu-buat">
@@ -989,7 +1044,7 @@ jumlah    = total - potongan</code></pre>
                 <thead><tr><th>Field</th><th>Aturan</th><th>Catatan</th></tr></thead>
                 <tbody>
                     <tr><td>Nama Pelanggan</td><td>Wajib, teks</td><td>Terisi otomatis bila memilih pelanggan terdaftar; tetap bisa diubah.</td></tr>
-                    <tr><td>Pelanggan Terdaftar</td><td>Opsional</td><td>Pilihan dari akun role pelanggan; nilai kosong = pelanggan umum.</td></tr>
+                    <tr><td>Pelanggan Terdaftar</td><td>Opsional</td><td>Combobox pencarian dari akun role pelanggan; default <strong>Pelanggan umum</strong> (nilai kosong) bila tidak dipilih. Beralih kembali ke Pelanggan umum mengosongkan nama pelanggan sebelumnya.</td></tr>
                     <tr><td>Paket Kiloan</td><td>Wajib</td><td>Menampilkan harga per kg dari master.</td></tr>
                     <tr><td>Berat Cucian (kg)</td><td>Wajib, 0,1–1000 kg</td><td>Input mendukung dua desimal, contoh: 3,50.</td></tr>
                     <tr><td>Waktu Transaksi</td><td>Wajib</td><td>Default waktu saat ini, dapat diubah.</td></tr>
@@ -1004,7 +1059,7 @@ jumlah    = total - potongan</code></pre>
                 <thead><tr><th>Field</th><th>Aturan</th><th>Catatan</th></tr></thead>
                 <tbody>
                     <tr><td>Nama Pelanggan</td><td>Wajib, teks</td><td>Sama seperti kiloan.</td></tr>
-                    <tr><td>Pelanggan Terdaftar</td><td>Opsional</td><td>Sama seperti kiloan.</td></tr>
+                    <tr><td>Pelanggan Terdaftar</td><td>Opsional</td><td>Combobox pencarian, default <strong>Pelanggan umum</strong>; beralih kembali ke walk-in mengosongkan nama pelanggan sebelumnya; sama seperti kiloan.</td></tr>
                     <tr><td>Jenis Layanan</td><td>Wajib</td><td>Menentukan biaya layanan yang ditambahkan ke total.</td></tr>
                     <tr><td>Waktu Transaksi</td><td>Wajib</td><td>Default waktu saat ini.</td></tr>
                     <tr><td>Diskon (%)</td><td>0–100</td><td>Diterapkan pada total (barang + biaya layanan).</td></tr>
@@ -1012,6 +1067,14 @@ jumlah    = total - potongan</code></pre>
                 </tbody>
             </table>
         </div>
+
+        <p class="small">
+            <strong>Hadiah pelanggan:</strong> bila pelanggan terdaftar memiliki hadiah
+            <code>Tersedia</code>, form menampilkan pilihan hadiah. Memilih hadiah mengunci diskon
+            manual ke 0 dan menghitung potongan otomatis (persen/nominal/gratis); satu nota hanya
+            boleh memakai satu hadiah. Saat mengubah nota, hadiah terpasang tetap tampil pada select
+            dan dapat dilepas lewat <strong>Tanpa hadiah</strong> atau diganti ke hadiah lain.
+        </p>
 
         <p class="small">
             Panel ringkasan di sisi kanan menampilkan harga, subtotal, biaya layanan, potongan, jumlah
@@ -1026,16 +1089,24 @@ jumlah    = total - potongan</code></pre>
             <span class="url">GET /nota/{id}</span>
             <span class="pill admin">Admin</span><span class="pill karyawan">Karyawan</span>
         </header>
-        <p>Menampilkan dokumen invoice A4 dan ringkasan transaksi. Siap dicetak dari browser.</p>
+        <p>Menampilkan dokumen invoice A4 dan ringkasan transaksi, dengan pilihan format cetak A4 atau thermal 58/80 mm.</p>
         <ul>
-            <li><strong>Kop invoice:</strong> logo dan nama perusahaan dari menu Setup; bila belum ada logo, tampil ikon baju sebagai fallback. Nomor invoice dan waktu berada di sisi kanan.</li>
-            <li><strong>Informasi pelanggan dan layanan:</strong> nama/email pelanggan terdaftar, jenis layanan, serta keterangan paket kiloan atau daftar barang.</li>
+            <li><strong>Kop invoice:</strong> logo dan nama perusahaan dari menu Setup; bila belum ada logo, tampil ikon baju sebagai fallback. Nomor invoice, waktu, status nota, status pembayaran, dan kategori pelanggan berada di area kepala.</li>
+            <li><strong>Informasi pelanggan dan layanan:</strong> nama/email pelanggan terdaftar, kategori (Reguler/Member), jenis layanan, serta keterangan paket kiloan atau daftar barang.</li>
             <li><strong>Tabel item:</strong> deskripsi, qty/berat, harga, dan jumlah. Nota satuan menampilkan tiap barang plus baris biaya layanan.</li>
-            <li><strong>Ringkasan pembayaran:</strong> subtotal, diskon dan potongan, total bayar, serta kotak terbilang Bahasa Indonesia.</li>
-            <li><strong>Tombol Cetak Invoice</strong> memanggil print browser. CSS <code>@page size: A4</code> menyembunyikan sidebar, header halaman, tombol, dan panel ringkasan layar (<code>.no-print</code>), lalu mencetak dokumen putih dengan margin 14 mm.</li>
+            <li><strong>Ringkasan pembayaran:</strong> subtotal, diskon/hadiah dan potongan, total bayar, serta kotak terbilang Bahasa Indonesia.</li>
+            <li><strong>Tombol Cetak</strong> membuka modal pilihan format: <strong>A4</strong>, <strong>Thermal 80 mm</strong>, atau <strong>Thermal 58 mm</strong>, lalu memanggil print browser. CSS <code>@page</code> dinamis menyembunyikan sidebar, header halaman, footer, tombol, dan modal (<code>.no-print</code>).</li>
+            <li><strong>Aksi status:</strong> <em>Tandai Selesai</em> (memicu hadiah), <em>Lunas</em>, dan <em>Batalkan</em> untuk pengguna dengan <code>nota.update</code>; nota batal tidak dapat diselesaikan.</li>
             <li><strong>Tombol Ubah</strong> tampil jika punya <code>nota.update</code>; <strong>Hapus</strong> hanya untuk admin (<code>nota.delete</code>).</li>
             <li><strong>Panel layar:</strong> ringkasan, terbilang, sumber harga tersimpan, dan rincian barang.</li>
         </ul>
+        <div class="callout info">
+            <strong>Format thermal</strong>
+            Struk thermal memakai font 10 px (80 mm) atau 9 px (58 mm); nama barang panjang membungkus
+            dan total tidak terpotong. Kertas diatur lewat <code>@page</code> dengan lebar 80/58 mm dan
+            tinggi yang dihitung dari tinggi struk, sehingga pratinjau cetak memakai ukuran kertas yang
+            benar (bukan A4) dan tidak menghasilkan halaman kosong.
+        </div>
         <div class="callout info">
             <strong>Snapshot harga</strong>
             Nota lama tidak berubah ketika harga master diperbarui atau master dihapus. Nilai yang
@@ -1052,13 +1123,16 @@ jumlah    = total - potongan</code></pre>
         <h4>Edit</h4>
         <ul>
             <li>Form sama dengan pembuatan; jenis nota tetap dan tidak dapat diganti.</li>
-            <li>Nominal dihitung ulang dari master saat ini, termasuk snapshot harga baru.</li>
+            <li>Hadiah lama dilepas lebih dulu, nominal dihitung ulang dari master saat ini, lalu hadiah yang dipilih diterapkan kembali.</li>
+            <li>Hadiah terpasang tampil pada select dan dapat dilepas lewat <strong>Tanpa hadiah</strong> atau diganti tanpa mengganti pelanggan; melepas hadiah mengaktifkan kembali diskon persen.</li>
+            <li>Nota berstatus <strong>Dibatalkan</strong> bersifat final: halaman edit ditolak dan tombol Ubah disembunyikan.</li>
             <li>Untuk nota satuan, seluruh baris lama diganti dengan baris pada form.</li>
             <li>Setelah simpan, kembali ke detail dengan toast sukses.</li>
         </ul>
         <h4>Hapus</h4>
         <ul>
             <li>Hanya admin. Karyawan tidak melihat tombol dan endpoint DELETE menghasilkan 403.</li>
+            <li>Nota yang hadiah sumbernya sudah dipakai nota lain tidak dapat dibatalkan/dihapus; hadiah yang belum terpakai dilepas.</li>
             <li>Dialog konfirmasi menjelaskan bahwa baris barang pada nota ikut dihapus.</li>
             <li>Header dihapus, baris <code>nota_barangs</code> terhapus melalui cascade.</li>
         </ul>
@@ -1078,6 +1152,7 @@ jumlah    = total - potongan</code></pre>
                     <li>Field: nama barang (unik) dan harga satuan.</li>
                     <li>Pencarian nama dan pagination.</li>
                     <li>Tambah/ubah lewat modal; hapus dengan konfirmasi.</li>
+                    <li>Setelah dihapus, daftar kembali tanpa filter/pencarian ke halaman pertama agar semua barang tersisa langsung tampil. Perilaku yang sama berlaku untuk Harga Paket Kiloan, Jenis Layanan, Karyawan, Pelanggan, Pengguna, Promosi, dan Nota.</li>
                     <li>Menghapus barang tidak mengubah nota lama karena snapshot.</li>
                 </ul>
             </div>
@@ -1112,9 +1187,11 @@ jumlah    = total - potongan</code></pre>
         <h4>Pelanggan <span class="pill admin">Admin</span><span class="pill karyawan">Karyawan</span></h4>
         <ul>
             <li>Mengelola akun dengan role <code>pelanggan</code>; akun ini hanya dapat masuk ke portal <code>/akun</code>, bukan halaman staf.</li>
-            <li>Field: nama, email (unik), jenis kelamin, alamat, password + konfirmasi (minimal 8 karakter).</li>
-            <li>Pencarian nama/email, pagination, tambah/ubah lewat modal, hapus dengan konfirmasi.</li>
-            <li>Pelanggan yang dihapus tidak menghapus nota; nota tetap memiliki <code>nama_pelanggan</code>.</li>
+            <li>Field: nama, email (unik), jenis kelamin, alamat, <strong>kategori</strong> (Reguler/Member), password + konfirmasi (minimal 8 karakter).</li>
+            <li>Mengubah kategori ke Member mengisi <code>member_sejak</code>; kembali ke Reguler mengosongkannya. Hadiah yang sudah diperoleh tetap tersimpan.</li>
+            <li>Daftar menampilkan badge kategori dan mendukung filter kategori, pencarian, serta pagination.</li>
+            <li><strong>Detail pelanggan:</strong> profil, kategori, riwayat nota, progress loyalitas (transaksi Selesai, sisa target, siklus), dan daftar hadiah.</li>
+            <li>Pelanggan yang dihapus tidak menghapus nota; nota tetap memiliki <code>nama_pelanggan</code> dan <code>pelanggan_id</code> menjadi kosong.</li>
         </ul>
 
         <h4>Karyawan <span class="pill admin">Admin</span></h4>
@@ -1131,6 +1208,38 @@ jumlah    = total - potongan</code></pre>
             <li>Password wajib saat membuat; opsional saat mengedit (kosong = tidak diubah).</li>
             <li>Admin tidak dapat menghapus akunnya sendiri; admin terakhir juga tidak dapat dihapus.</li>
             <li>Menghapus akun pelanggan tidak menghapus riwayat nota.</li>
+        </ul>
+    </div>
+
+    <div class="card menu-card" id="menu-loyalitas">
+        <header>
+            <h3>Loyalitas Member</h3>
+            <span class="url">GET/PUT /loyalitas</span>
+            <span class="pill admin">Admin</span>
+        </header>
+        <p>Konfigurasi program loyalitas untuk pelanggan kategori <strong>Member</strong>. Hadiah terbit otomatis setiap kali jumlah transaksi <strong>Selesai</strong> mencapai target.</p>
+        <ul>
+            <li><strong>Field program:</strong> nama, deskripsi, target transaksi, tipe hadiah (persen/nominal/gratis), nilai hadiah, masa berlaku (hari), dan status aktif. Untuk <em>Gratis Cuci</em>, nilai 0 berarti gratis penuh; nilai &gt; 0 menjadi batas maksimal potongan. Tipe persen dibatasi 1–100, dan nilai menyesuaikan otomatis saat tipe hadiah diganti.</li>
+            <li><strong>Penerbitan:</strong> siklus = <code>intdiv(jumlah Selesai, target)</code>; satu hadiah per siklus dengan kunci deterministik <code>LOY-{program}-{user}-{siklus}</code>.</li>
+            <li><strong>Riwayat:</strong> hadiah <em>Tersedia</em>, <em>Digunakan</em>, <em>Kedaluwarsa</em>, dan <em>Dibatalkan</em> beserta tanggal peroleh/pakai.</li>
+            <li><strong>Perubahan konfigurasi:</strong> menyimpan program menyinkronkan seluruh pelanggan; target turun mencabut hadiah tersedia berlebih, target naik menerbitkan siklus baru.</li>
+            <li><strong>Akses:</strong> hanya admin dengan <code>loyalitas.manage</code>; karyawan mendapat 403.</li>
+        </ul>
+    </div>
+
+    <div class="card menu-card" id="menu-promosi">
+        <header>
+            <h3>Promosi</h3>
+            <span class="url">GET/POST/PUT/DELETE /promosi</span>
+            <span class="pill admin">Admin</span>
+        </header>
+        <p>Promosi umum yang dapat menyasar pelanggan Reguler, Member, atau semua kategori, dengan periode dan syarat tertentu.</p>
+        <ul>
+            <li><strong>Field:</strong> nama, deskripsi, syarat, target kategori, target transaksi, tipe/nilai hadiah, tanggal mulai–selesai, dan status aktif. Untuk <em>Gratis Cuci</em>, nilai 0 berarti gratis penuh; nilai &gt; 0 menjadi batas maksimal potongan. Tipe persen dibatasi 1–100, dan nilai menyesuaikan otomatis saat tipe hadiah diganti.</li>
+            <li><strong>Penerbitan:</strong> hanya bila promosi aktif, pelanggan memenuhi kategori, dan transaksi Selesai berada dalam periode; kunci <code>PRM-{promo}-{user}-{siklus}</code>.</li>
+            <li><strong>Tidak aktif/kedaluwarsa:</strong> tidak menerbitkan hadiah baru; hadiah lama tetap dapat dipakai sampai habis.</li>
+            <li><strong>Ledger terpisah:</strong> promosi dan loyalitas memiliki sumber/kunci berbeda, sehingga satu transaksi dapat dihitung untuk keduanya, tetapi hanya satu hadiah yang boleh dipakai per nota.</li>
+            <li><strong>Akses:</strong> hanya admin dengan <code>promosi.manage</code>; karyawan mendapat 403.</li>
         </ul>
     </div>
 
@@ -1196,6 +1305,7 @@ jumlah    = total - potongan</code></pre>
             </ul>
             <ul class="small">
                 <li><strong>Format Rupiah:</strong> semua nominal memakai pemisah ribuan <code>id-ID</code>.</li>
+                <li><strong>Format cetak:</strong> detail nota menyediakan pilihan A4, thermal 80 mm, dan thermal 58 mm; pratinjau mengikuti format yang dipilih.</li>
                 <li><strong>Terbilang:</strong> total invoice otomatis ditulis dalam kata Bahasa Indonesia dengan akhiran “rupiah”.</li>
                 <li><strong>Logout:</strong> tombol di kartu pengguna dengan tooltip “Logout” (hover dan fokus keyboard); session diinvalidasi dan kembali ke login.</li>
                 <li><strong>Ikon menu kiloan:</strong> ikon mesin cuci SVG dari pustaka ikon internal, bukan emoji.</li>
@@ -1411,7 +1521,7 @@ sudo certbot --nginx -d laundry.domainanda.com</code></pre>
             <strong>Verifikasi</strong>
             <p class="small">
                 Buka <code>https://laundry.domainanda.com/up</code> (harus 200), lalu halaman login.
-                Periksa login admin, dashboard, pembuatan nota, cetak, dan ekspor CSV. Pantau
+                Periksa login admin, dashboard, pembuatan nota, cetak, dan ekspor Excel. Pantau
                 <code>storage/logs/laravel.log</code> bila ada kendala.
             </p>
         </li>
@@ -1646,7 +1756,7 @@ echo symlink($target, $link) ? 'Symlink berhasil dibuat.' : 'Gagal membuat symli
             <p class="small">
                 Aktifkan SSL gratis di hPanel dan paksa HTTPS. Buka
                 <code>https://domainanda.com/up</code>, lalu login. Uji setiap menu, pembuatan nota,
-                cetak struk, dan ekspor CSV.
+                cetak struk, dan ekspor Excel.
             </p>
         </li>
 
@@ -1681,7 +1791,9 @@ echo symlink($target, $link) ? 'Symlink berhasil dibuat.' : 'Gagal membuat symli
             <h4>B. Demo / pelatihan</h4>
             <ul class="small">
                 <li><code>php artisan migrate:fresh --seed --force</code>.</li>
-                <li>Menghasilkan 15 pengguna, 10 barang, 5 paket, 4 layanan, dan 68 nota (November 2026).</li>
+                <li>Menghasilkan 15 pengguna (5 Member/5 Reguler), 10 barang, 5 paket, 4 layanan,
+                    1 program loyalitas, 3 promosi, 81 nota (Mei–November 2026), dan 18 reward.
+                    Menjalankan <code>db:seed</code> ulang membangun ulang data transaksi demo tanpa menggandakannya.</li>
                 <li>Semua akun memakai password <code>password</code>.</li>
                 <li>Wajib mengganti password sebelum dipakai nyata.</li>
             </ul>
@@ -1916,16 +2028,19 @@ sudo systemctl reload php8.4-fpm</code></pre>
         <table>
             <thead><tr><th>Data</th><th>Jumlah</th><th>Contoh</th></tr></thead>
             <tbody>
-                <tr><td>Pengguna</td><td>15</td><td>1 admin, 4 karyawan, 10 pelanggan.</td></tr>
+                <tr><td>Pengguna</td><td>15</td><td>1 admin, 4 karyawan, 10 pelanggan (5 Member, 5 Reguler).</td></tr>
                 <tr><td>Barang satuan</td><td>10</td><td>Selimut, Kemeja, Bed Cover, Jas, Gaun, Sepatu, dan lainnya.</td></tr>
                 <tr><td>Paket kiloan</td><td>5</td><td>SUPER DUPER 5kg, 4/8/24 Jam Selesai, dan lainnya.</td></tr>
                 <tr><td>Jenis layanan</td><td>4</td><td>Reguler, Cepat, Kilat, Super Duper.</td></tr>
-                <tr><td>Nota</td><td>68*</td><td>Campuran kiloan dan satuan; jumlah mengikuti bulan saat seeder dijalankan.</td></tr>
+                <tr><td>Program loyalitas</td><td>1</td><td>Member Laundry: target 5 transaksi Selesai, diskon 10%, berlaku 90 hari.</td></tr>
+                <tr><td>Promosi</td><td>3</td><td>Promo Hemat Reguler, Bonus Member Setia, Promo Lebaran Berkah (nonaktif).</td></tr>
+                <tr><td>Nota</td><td>81*</td><td>6 bulan terakhir; 74 Selesai, 5 Diproses, 2 Dibatalkan; 41 satuan, 40 kiloan.</td></tr>
+                <tr><td>Riwayat hadiah</td><td>18</td><td>13 Tersedia, 2 Digunakan, 3 Kedaluwarsa (loyalitas + promosi).</td></tr>
                 <tr><td>Identitas perusahaan</td><td>1</td><td>Nama dari <code>APP_NAME</code>; logo kosong sampai diunggah lewat Setup.</td></tr>
             </tbody>
         </table>
     </div>
-    <p class="small muted">*Per November 2026. Seeder idempoten: menjalankan <code>db:seed</code> lagi tidak menggandakan data.</p>
+    <p class="small muted">*Per November 2026. Seeder akun/master idempoten; <code>NotaSeeder</code> membangun ulang data transaksi 6 bulan dalam satu transaksi database sehingga tidak ada duplikasi saat <code>db:seed</code> diulang.</p>
 
     <h3>5.3 Perintah penting</h3>
     <div class="table-wrap">
@@ -1948,23 +2063,30 @@ sudo systemctl reload php8.4-fpm</code></pre>
         </table>
     </div>
 
-    <h3>5.3.1 Hasil pemeriksaan final (24 November 2026)</h3>
+    <h3>5.3.1 Hasil pemeriksaan final (27 November 2026)</h3>
     <div class="table-wrap">
         <table>
             <thead><tr><th>Pemeriksaan</th><th>Hasil</th></tr></thead>
             <tbody>
-                <tr><td>Test backend</td><td><strong>93 test / 437 assertion lulus</strong>, 14,48 detik.</td></tr>
+                <tr><td>Test backend</td><td><strong>141 test / 755 assertion lulus</strong>, 23,30 detik.</td></tr>
                 <tr><td>Type check Svelte</td><td><strong>0 error, 0 warning</strong>.</td></tr>
-                <tr><td>Build produksi</td><td>Sukses, <strong>800 modul</strong>; JS 431,59 kB (gzip 116,97 kB), CSS 97,20 kB (gzip 16,59 kB; <code>app.css</code> 67,68 kB + <code>sweetalert2.min.css</code> 29,52 kB).</td></tr>
-                <tr><td>Notifikasi SweetAlert2</td><td>Dialog konfirmasi hapus (fokus awal Batal), toast sukses simpan/hapus di kanan atas, mode gelap, 0 error console — <code>TESTING_REPORT.md</code> §4.2.</td></tr>
-                <tr><td>Footer global</td><td>Bar fixed di dasar layar untuk dashboard/staf (rect tetap saat scroll pada 0/1.101/1.721 px) dan portal pelanggan (rect tetap pada 0/1.603 px, konten tidak tertutup, kontainer <code>max-w-5xl</code>), footer ringkas di login; teks hanya berasal dari konstanta terenkode di <code>lib/footer.ts</code> (pencarian teks footer di bundle = 0 hasil); light/dark, tanpa overflow — <code>TESTING_REPORT.md</code> §4.3.</td></tr>
-                <tr><td>Route aplikasi</td><td><strong>46 route</strong> di luar route vendor.</td></tr>
-                <tr><td>Admin</td><td>Seluruh halaman staf <code>200</code>; <code>/akun</code> dialihkan ke dashboard.</td></tr>
-                <tr><td>Karyawan</td><td>Halaman operasional <code>200</code>; <code>/users</code>, <code>/karyawan</code>, <code>/pengaturan</code> <code>403</code>; <code>/akun</code> dialihkan.</td></tr>
-                <tr><td>Pelanggan</td><td><code>/akun</code> dan nota miliknya <code>200</code>; PDF <code>application/pdf</code> 8.334 byte; nota/PDF pelanggan lain <code>404</code>; halaman staf <code>403</code>.</td></tr>
+                <tr><td>Build produksi</td><td>Sukses, <strong>805 modul</strong>; JS 493,73 kB (gzip 131,45 kB), CSS 101,15 kB (gzip 17,20 kB; <code>app.css</code> 71,63 kB + <code>sweetalert2.min.css</code> 29,52 kB).</td></tr>
+                <tr><td>Loyalitas &amp; promosi</td><td>Hadiah terbit per siklus, sekali pakai, kedaluwarsa, pembatalan melepas hadiah, dan larangan pakai ulang — <code>TESTING_REPORT.md</code> §3/§4.4.</td></tr>
+                <tr><td>Akurasi hadiah</td><td><code>RewardAccuracyTest</code> (5 test): jumlah hadiah loyalitas = siklus transaksi Selesai dan hanya untuk Member; promosi semua pelanggan diterima Member maupun Reguler; hitungan loyalitas/promosi terpisah; promosi hanya menghitung nota Selesai dalam periode; nilai hadiah tidak melebihi total dan <code>sync</code> ulang idempoten.</td></tr>
+                <tr><td>Seeder 6 bulan</td><td>81 nota, 18 hadiah, seluruh status/pembayaran, 5 Member/5 Reguler; <code>db:seed</code> ulang tidak menggandakan data.</td></tr>
+                <tr><td>Rebuild database</td><td><code>DROP</code>/<code>CREATE</code> database <code>laundry_svelte</code> dan <code>laundry_svelte_test</code> pada 27 November 2026, lalu <code>migrate --seed --force</code> (17 migrasi + 10 seeder). Baseline terverifikasi: 15 pengguna (1 admin, 4 karyawan, 5 Member, 5 Reguler), 10 barang, 5 kiloan, 4 jenis layanan, loyalitas diskon 10% target 5, 3 promosi, 81 nota (ID 1–81), 18 hadiah, 3 role, 14 permission; database proyek lain/legacy/produksi tidak disentuh — <code>TESTING_REPORT.md</code> §4.6.</td></tr>
+                <tr><td>Format cetak</td><td>A4, thermal 80 mm (302,359 px), thermal 58 mm (219,203 px); tanpa overflow dan tanpa navigasi saat cetak; thermal memakai <code>@page size</code> eksplisit (58 mm → <code>58mm 104mm</code>).</td></tr>
+                <tr><td>Combobox pelanggan</td><td>Form kiloan &amp; satuan: default <strong>Pelanggan umum</strong>, daftar difilter saat mengetik, navigasi panah/Enter/Escape, memilih pelanggan mengisi nama dan membuka hadiah, halaman edit memuat pelanggan tersimpan; 0 error console.</td></tr>
+                <tr><td>Nama pelanggan walk-in</td><td>Memilih pelanggan terdaftar mengisi nama; beralih ke <strong>Pelanggan umum</strong> mengosongkan nama, mereset hadiah ke "Tanpa hadiah", dan menonaktifkan select hadiah — berlaku pada form kiloan dan satuan.</td></tr>
+                <tr><td>Hadiah saat edit</td><td>Nota berhadiah menampilkan select dengan opsi <strong>Tanpa hadiah</strong>, hadiah terpasang (terpilih), dan hadiah tersedia; melepas hadiah mengaktifkan diskon, memilih hadiah lain memperbarui potongan dan total pada ringkasan.</td></tr>
+                <tr><td>Nota Dibatalkan</td><td><code>/nota?status=Dibatalkan</code> hanya menampilkan aksi Lihat + Hapus; detail tanpa tombol Ubah/Tandai; akses langsung halaman edit dialihkan kembali dengan pesan error.</td></tr>
+                <tr><td>Route aplikasi</td><td><strong>56 route</strong> (61 total termasuk <code>_inertia/devtools</code>, <code>storage</code>, dan <code>up</code>; route vendor dikecualikan).</td></tr>
+                <tr><td>Admin</td><td>Seluruh halaman staf <code>200</code> (termasuk Loyalitas, Promosi, detail pelanggan); <code>/akun</code> dialihkan ke dashboard.</td></tr>
+                <tr><td>Karyawan</td><td>Halaman operasional/pelanggan <code>200</code>; <code>/users</code>, <code>/karyawan</code>, <code>/pengaturan</code>, <code>/loyalitas</code>, <code>/promosi</code> <code>403</code>; <code>/akun</code> dialihkan.</td></tr>
+                <tr><td>Pelanggan</td><td><code>/akun</code> dan nota miliknya <code>200</code>; PDF <code>application/pdf</code>; nota/PDF pelanggan lain <code>404</code>; halaman staf <code>403</code>.</td></tr>
                 <tr><td>Guest</td><td><code>/</code> dan <code>/akun</code> dialihkan ke login; lupa password <code>200</code>; URL tak dikenal <code>404</code>.</td></tr>
                 <tr><td>Console &amp; log server</td><td>0 error console; 0 error server selama pemeriksaan; input filter berlebih ditolak validasi tanpa 500.</td></tr>
-                <tr><td>Kebersihan repositori</td><td>Cache <code>.svelte-check/</code> dan <code>.phpunit.result.cache</code> dihapus; tidak ada file sumber yatim.</td></tr>
+                <tr><td>Kebersihan repositori</td><td>17 migrasi + 10 seeder seluruhnya direferensikan; view terkompilasi, log, <code>public/hot</code>, <code>.svelte-check/</code>, dan <code>.phpunit.result.cache</code> dihapus; <code>public/build</code> dipertahankan; tidak ada file sumber yatim.</td></tr>
             </tbody>
         </table>
     </div>
@@ -1972,18 +2094,18 @@ sudo systemctl reload php8.4-fpm</code></pre>
     <h3>5.4 Dokumen terkait</h3>
     <ul class="small">
         <li><code>docs/SYSTEM_ARCHITECTURE.md</code> — arsitektur final dan keputusan teknis.</li>
-        <li><code>docs/DATABASE_ANALYSIS.md</code> — skema, perbandingan legacy, integritas data.</li>
+        <li><code>docs/DATABASE_ANALYSIS.md</code> — skema, ERD, relasi, dan integritas data.</li>
         <li><code>docs/FEATURE_INVENTORY.md</code> — status setiap fitur.</li>
         <li><code>docs/BUSINESS_WORKFLOW.md</code> — alur kerja operasional.</li>
         <li><code>docs/TESTING_REPORT.md</code> — bukti pengujian.</li>
         <li><code>docs/DEMO_CREDENTIALS.md</code> — akun dan data demo.</li>
-        <li><code>docs/LEGACY_MIGRATION_REPORT.md</code> — perubahan yang disengaja dari legacy.</li>
+        <li><code>docs/LEGACY_MIGRATION_REPORT.md</code> — arsip audit dan keputusan historis.</li>
     </ul>
 
     <p class="small muted" style="margin-top:22px">
         Dokumen HTML ini bersifat statis dan mandiri: tidak membutuhkan server, tidak memuat aset
         eksternal, dan dapat dibuka langsung di browser atau dicetak ke PDF. Isinya disusun dari
-        kode proyek per 24 November 2026.
+        kode proyek per 27 November 2026.
     </p>
 </section>
 
